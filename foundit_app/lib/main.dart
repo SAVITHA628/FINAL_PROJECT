@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -50,32 +49,13 @@ void main() async {
   );
 }
 
-class GoRouterRefreshStream extends ChangeNotifier {
-  late final StreamSubscription<dynamic> _subscription;
-
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners();
-    _subscription = stream.asBroadcastStream().listen(
-      (dynamic _) => notifyListeners(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
-  }
-}
-
 final routerProvider = Provider<GoRouter>((ref) {
   final isFirebase = ref.watch(isFirebaseInitializedProvider);
-  final authStateAsync = ref.watch(authStateStreamProvider);
+  final authListenable = ref.watch(authListenableProvider);
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    refreshListenable: isFirebase
-        ? GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges())
-        : null,
+    refreshListenable: authListenable,
     redirect: (context, state) {
       final loc = state.matchedLocation;
       final isSplash = loc == AppRoutes.splash;
@@ -84,7 +64,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           loc == AppRoutes.forgotPassword;
 
       final firebaseUser = isFirebase ? FirebaseAuth.instance.currentUser : null;
-      final isLoggedIn = firebaseUser != null || authStateAsync.valueOrNull != null;
+      final currentUser = ref.read(currentUserProvider).valueOrNull;
+      final isLoggedIn = firebaseUser != null || currentUser != null;
 
       if (isSplash) return null;
 

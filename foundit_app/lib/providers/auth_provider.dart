@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/user_model.dart';
 import 'app_providers.dart';
@@ -9,6 +10,21 @@ final authStateStreamProvider = StreamProvider<User?>((ref) {
   if (!isFirebase) return Stream.value(null);
   return FirebaseAuth.instance.authStateChanges();
 });
+
+// Change notifier that notifies GoRouter whenever user authentication state changes
+final authListenableProvider = Provider<ChangeNotifier>((ref) {
+  final notifier = _AuthChangeNotifier();
+  ref.listen(currentUserProvider, (_, next) {
+    notifier.notify();
+  });
+  return notifier;
+});
+
+class _AuthChangeNotifier extends ChangeNotifier {
+  void notify() {
+    notifyListeners();
+  }
+}
 
 // Auth notifier state management for login, register, logout, password reset
 final authNotifierProvider =
