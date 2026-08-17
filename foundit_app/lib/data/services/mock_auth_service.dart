@@ -3,7 +3,7 @@ import '../models/user_model.dart';
 import 'auth_service_interface.dart';
 
 class MockAuthService implements AuthServiceInterface {
-  UserModel? _currentUser = MockData.currentUser;
+  UserModel? _currentUser; // Default unauthenticated until user logs in or registers
 
   @override
   Future<UserModel?> getCurrentUser() async {
@@ -17,7 +17,7 @@ class MockAuthService implements AuthServiceInterface {
     if (password.length < 6) {
       throw Exception('Password must be at least 6 characters.');
     }
-    _currentUser = MockData.currentUser;
+    _currentUser = MockData.currentUser.copyWith(email: email);
     return _currentUser!;
   }
 

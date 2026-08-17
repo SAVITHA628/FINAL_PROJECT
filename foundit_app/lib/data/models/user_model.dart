@@ -65,6 +65,7 @@ class UserModel {
 
   UserModel copyWith({
     String? name,
+    String? email,
     String? phone,
     String? profileImageUrl,
     List<String>? favouriteItemIds,
@@ -73,7 +74,7 @@ class UserModel {
     return UserModel(
       uid: uid,
       name: name ?? this.name,
-      email: email,
+      email: email ?? this.email,
       phone: phone ?? this.phone,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       role: role,
