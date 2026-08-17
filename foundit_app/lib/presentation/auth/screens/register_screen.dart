@@ -21,6 +21,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _confirmPassCtrl = TextEditingController();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -31,6 +32,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
     _passCtrl.dispose();
+    _confirmPassCtrl.dispose();
     super.dispose();
   }
 
@@ -78,7 +80,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       appBar: AppBar(
         title: const Text('Create Account'),
         leading: BackButton(
-          onPressed: () => context.pop(),
+          onPressed: () => context.go(AppRoutes.login),
         ),
       ),
       body: SafeArea(
@@ -163,7 +165,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Phone (optional)
                 AuthTextField(
                   controller: _phoneCtrl,
-                  label: 'Phone Number (Optional)',
+                  label: 'Phone Number',
                   hint: '+91 9876543210',
                   prefixIcon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
@@ -179,6 +181,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   prefixIcon: Icons.lock_outline_rounded,
                   obscureText: true,
                   validator: Validators.password,
+                ),
+                const SizedBox(height: 16),
+
+                // Confirm Password
+                AuthTextField(
+                  controller: _confirmPassCtrl,
+                  label: 'Confirm Password',
+                  hint: 'Re-enter password',
+                  prefixIcon: Icons.lock_reset_rounded,
+                  obscureText: true,
+                  validator: (val) {
+                    if (val == null || val.isEmpty) {
+                      return 'Please confirm your password';
+                    }
+                    if (val != _passCtrl.text) {
+                      return 'Passwords do not match!';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 28),
 
@@ -208,7 +229,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Already have account
+                // Already have account link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

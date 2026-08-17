@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +23,7 @@ import 'presentation/notifications/screens/notifications_screen.dart';
 import 'presentation/profile/screens/profile_screen.dart';
 import 'presentation/search/screens/search_screen.dart';
 import 'providers/app_providers.dart';
+import 'providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,9 +50,56 @@ void main() async {
   );
 }
 
+class GoRouterRefreshStream extends ChangeNotifier {
+  late final StreamSubscription<dynamic> _subscription;
+
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
+  final isFirebase = ref.watch(isFirebaseInitializedProvider);
+  final authStateAsync = ref.watch(authStateStreamProvider);
+
   return GoRouter(
     initialLocation: AppRoutes.splash,
+    refreshListenable: isFirebase
+        ? GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges())
+        : null,
+    redirect: (context, state) {
+      final loc = state.matchedLocation;
+      final isSplash = loc == AppRoutes.splash;
+      final isAuthRoute = loc == AppRoutes.login ||
+          loc == AppRoutes.register ||
+          loc == AppRoutes.forgotPassword;
+
+      final firebaseUser = isFirebase ? FirebaseAuth.instance.currentUser : null;
+      final isLoggedIn = firebaseUser != null || authStateAsync.valueOrNull != null;
+
+      if (isSplash) return null;
+
+      // 🔒 Route Protection: Redirect unauthenticated requests to /login
+      if (!isLoggedIn && !isAuthRoute) {
+        return AppRoutes.login;
+      }
+
+      // 🔓 Redirect authenticated users away from /login or /register to /home
+      if (isLoggedIn && isAuthRoute) {
+        return AppRoutes.home;
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: AppRoutes.splash,
