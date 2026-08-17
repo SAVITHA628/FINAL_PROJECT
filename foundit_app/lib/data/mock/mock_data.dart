@@ -29,7 +29,7 @@ class MockData {
       location: 'Library Cafeteria, Block B',
       dateLostOrFound: DateTime.now().subtract(const Duration(days: 2)),
       imageUrl:
-          'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&auto=format&fit=crop&q=80',
       status: ItemStatus.active,
       reportedBy: 'user_001',
       reporterName: 'Jash',
@@ -46,7 +46,7 @@ class MockData {
       location: 'Main Parking Lot',
       dateLostOrFound: DateTime.now().subtract(const Duration(days: 1)),
       imageUrl:
-          'https://images.unsplash.com/photo-1572949645841-094f3a9c4c94?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=500&auto=format&fit=crop&q=80',
       status: ItemStatus.active,
       reportedBy: 'user_002',
       reporterName: 'Rohan Kumar',
@@ -63,7 +63,7 @@ class MockData {
       location: 'Central Canteen',
       dateLostOrFound: DateTime.now().subtract(const Duration(hours: 6)),
       imageUrl:
-          'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1583473848882-f9a5bc7fd2ee?w=500&auto=format&fit=crop&q=80',
       status: ItemStatus.active,
       reportedBy: 'user_003',
       reporterName: 'Anita Desai',
@@ -99,7 +99,7 @@ class MockData {
       location: 'Computer Lab 204, Block A',
       dateLostOrFound: DateTime.now().subtract(const Duration(hours: 12)),
       imageUrl:
-          'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80',
       status: ItemStatus.active,
       reportedBy: 'user_005',
       reporterName: 'Meena Patel',
