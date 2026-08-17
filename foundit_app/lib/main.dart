@@ -51,11 +51,11 @@ void main() async {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final isFirebase = ref.watch(isFirebaseInitializedProvider);
-  final authListenable = ref.watch(authListenableProvider);
+  final routerNotifier = ref.watch(routerNotifierProvider);
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    refreshListenable: authListenable,
+    refreshListenable: routerNotifier,
     redirect: (context, state) {
       final loc = state.matchedLocation;
       final isSplash = loc == AppRoutes.splash;

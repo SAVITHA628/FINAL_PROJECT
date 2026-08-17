@@ -11,20 +11,20 @@ final authStateStreamProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
 });
 
-// Change notifier that notifies GoRouter whenever user authentication state changes
-final authListenableProvider = Provider<ChangeNotifier>((ref) {
-  final notifier = _AuthChangeNotifier();
-  ref.listen(currentUserProvider, (_, next) {
-    notifier.notify();
-  });
-  return notifier;
-});
+// Router notifier for GoRouter refreshListenable
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
 
-class _AuthChangeNotifier extends ChangeNotifier {
-  void notify() {
-    notifyListeners();
+  RouterNotifier(this._ref) {
+    _ref.listen<AsyncValue<UserModel?>>(currentUserProvider, (_, __) {
+      notifyListeners();
+    });
   }
 }
+
+final routerNotifierProvider = Provider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
 
 // Auth notifier state management for login, register, logout, password reset
 final authNotifierProvider =
@@ -71,7 +71,6 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     state = const AsyncValue.loading();
     try {
       final repo = _ref.read(userRepositoryProvider);
-      // Default registration creates normal user (role fixed to 'user')
       final user = await repo.register(name, email, password, phone);
       state = AsyncValue.data(user);
       _ref.invalidate(currentUserProvider);
