@@ -28,47 +28,39 @@ service cloud.firestore {
     // ── users ─────────────────────────────────────────────────────────
     match /users/{userId} {
       allow read:   if isOwner(userId) || isAdmin();
-      allow create: if isAuth() && uid() == userId;
-      allow update: if isOwner(userId) || isAdmin();
+      allow create: if isAuth() && uid() == userId && (request.resource.data.role == 'user' || isAdmin());
+      allow update: if (isOwner(userId) && (request.resource.data.role == resource.data.role || isAdmin())) || isAdmin();
       allow delete: if isAdmin();
     }
 
     // ── items ─────────────────────────────────────────────────────────
     match /items/{itemId} {
-      // Any authenticated active user can read active items;
-      // admins can read all items regardless of isActive flag
-      allow read: if isActiveUser() &&
-                     (resource.data.isActive == true || isAdmin());
-
-      // Any authenticated active user can create an item
+      allow read: if isActiveUser() && (resource.data.isActive == true || isAdmin());
       allow create: if isActiveUser()
                     && request.resource.data.reportedBy == uid()
-                    && request.resource.data.status == 'active'
                     && request.resource.data.isActive == true;
+      allow update: if isAdmin() || (isOwner(resource.data.reportedBy) && isActiveUser());
+      allow delete: if isAdmin() || isOwner(resource.data.reportedBy);
+    }
 
-      // Owner can update their own items; admin can update any
-      allow update: if isAdmin()
-                    || (isOwner(resource.data.reportedBy) && isActiveUser());
-
-      // Soft-delete only (isActive = false); admin or owner
-      allow delete: if isAdmin()
-                    || isOwner(resource.data.reportedBy);
+    // ── matches ───────────────────────────────────────────────────────
+    match /matches/{matchId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
     }
 
     // ── notifications ─────────────────────────────────────────────────
     match /notifications/{notifId} {
-      allow read:   if isAuth() && (
-                      resource.data.recipientId == uid() || isAdmin()
-                    );
-      // Only Cloud Functions (Admin SDK) create notifications
-      allow write:  if false;
+      allow read:   if isAuth() && (resource.data.recipientId == uid() || isAdmin());
+      allow create: if isAuth();
+      allow update: if isAuth() && (resource.data.recipientId == uid() || isAdmin());
+      allow delete: if isAdmin();
     }
 
     // ── admin_stats ────────────────────────────────────────────────────
     match /admin_stats/{doc} {
       allow read:  if isAdmin();
-      // Written exclusively by Cloud Functions via Admin SDK
-      allow write: if false;
+      allow write: if isAdmin();
     }
   }
 }
