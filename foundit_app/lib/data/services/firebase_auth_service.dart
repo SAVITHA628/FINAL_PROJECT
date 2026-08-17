@@ -82,7 +82,7 @@ class FirebaseAuthService implements AuthServiceInterface {
         return _sessionUser!;
       }
       throw _mapFirebaseAuthException(e);
-    } catch (e) {
+    } catch (_) {
       _sessionUser = UserModel(
         uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
         name: email.split('@')[0],
@@ -134,7 +134,7 @@ class FirebaseAuthService implements AuthServiceInterface {
         createdAt: DateTime.now(),
       );
       return _sessionUser!;
-    } catch (e) {
+    } catch (_) {
       _sessionUser = UserModel(
         uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
         name: name.trim(),

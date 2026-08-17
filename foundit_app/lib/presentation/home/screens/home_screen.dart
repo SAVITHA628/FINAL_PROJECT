@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../providers/app_providers.dart';
+import '../../../providers/notification_provider.dart';
 import '../../common/widgets/empty_state.dart';
 import '../../common/widgets/filter_chips_row.dart';
 import '../../common/widgets/item_card.dart';
@@ -17,19 +18,20 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeItemsAsync = ref.watch(activeItemsProvider);
     final selectedFilter = ref.watch(itemTypeFilterProvider);
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
             Container(
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 gradient: AppColors.brandGradient,
               ),
-              child: const Icon(Icons.search_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.search_rounded, color: Colors.white, size: 20),
             ),
             AppSpacing.gapSm,
             ShaderMask(
@@ -38,7 +40,7 @@ class HomeScreen extends ConsumerWidget {
                 'FoundIt',
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
-                  fontSize: 20,
+                  fontSize: 22,
                   color: Colors.white,
                 ),
               ),
@@ -47,9 +49,44 @@ class HomeScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search_rounded),
+            icon: const Icon(Icons.search_rounded, size: 24),
             onPressed: () => context.push(AppRoutes.search),
           ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, size: 24),
+                onPressed: () => context.push(AppRoutes.notifications),
+              ),
+              if (unreadCount > 0)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.error,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '$unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(
