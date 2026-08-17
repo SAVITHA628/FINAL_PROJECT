@@ -1,0 +1,35 @@
+# FoundIt Master .gitignore
+
+# Node / React
+node_modules/
+dist/
+.vite/
+*.log
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.flutter-plugins
+*.flutter-plugins-dependencies
+
+# Python / AI
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+venv/
+.venv/
+env/
+.env
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
