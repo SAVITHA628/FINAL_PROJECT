@@ -1,0 +1,30 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Item images – scoped per user for path isolation
+    match /item_images/{userId}/{imageId} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+      allow update: if request.auth.uid == userId
+                    && request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth.uid == userId
+                    || (request.auth != null &&
+                        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // Profile pictures
+    match /profile_images/{userId}/{imageId} {
+      allow read:   if request.auth != null;
+      allow create,
+            update: if request.auth.uid == userId
+                    && request.resource.size < 2 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth.uid == userId;
+    }
+  }
+}
