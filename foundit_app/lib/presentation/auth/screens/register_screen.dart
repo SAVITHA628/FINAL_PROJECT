@@ -155,11 +155,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Email
+                // Email with generic hint text
                 AuthTextField(
                   controller: _emailCtrl,
                   label: 'Email Address',
-                  hint: 'you@college.edu',
+                  hint: 'Enter your email address',
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.email,

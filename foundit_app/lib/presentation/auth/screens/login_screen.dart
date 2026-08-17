@@ -122,7 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                // Error Banner with full descriptive error message
+                // Error Banner
                 if (_errorMessage != null) ...[
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -154,11 +154,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 20),
                 ],
 
-                // Email Input
+                // Email Input with generic hint text
                 AuthTextField(
                   controller: _emailCtrl,
                   label: 'Email Address',
-                  hint: 'you@college.edu',
+                  hint: 'Enter your email address',
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.email,
