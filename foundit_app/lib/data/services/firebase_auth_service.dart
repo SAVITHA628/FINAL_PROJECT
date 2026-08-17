@@ -42,6 +42,8 @@ class FirebaseAuthService implements AuthServiceInterface {
       return fallbackUser;
     } on FirebaseAuthException catch (e) {
       throw _mapFirebaseAuthException(e);
+    } catch (e) {
+      throw Exception('Login error: ${e.toString().replaceFirst('Exception: ', '')}');
     }
   }
 
@@ -72,6 +74,8 @@ class FirebaseAuthService implements AuthServiceInterface {
       return newUser;
     } on FirebaseAuthException catch (e) {
       throw _mapFirebaseAuthException(e);
+    } catch (e) {
+      throw Exception('Registration error: ${e.toString().replaceFirst('Exception: ', '')}');
     }
   }
 
@@ -81,6 +85,8 @@ class FirebaseAuthService implements AuthServiceInterface {
       await _auth.sendPasswordResetEmail(email: email.trim());
     } on FirebaseAuthException catch (e) {
       throw _mapFirebaseAuthException(e);
+    } catch (e) {
+      throw Exception('Password reset error: ${e.toString().replaceFirst('Exception: ', '')}');
     }
   }
 
@@ -112,8 +118,13 @@ class FirebaseAuthService implements AuthServiceInterface {
         return Exception('Too many unsuccessful login attempts. Please try again later.');
       case 'network-request-failed':
         return Exception('Network error. Please check your internet connection.');
+      case 'operation-not-allowed':
+        return Exception('Email/password accounts are not enabled in Firebase Console.');
       default:
-        return Exception(e.message ?? 'Authentication error occurred.');
+        final msg = (e.message != null && e.message!.isNotEmpty && e.message != 'Error')
+            ? e.message!
+            : 'Authentication error (${e.code}). Please check your inputs.';
+        return Exception(msg);
     }
   }
 }

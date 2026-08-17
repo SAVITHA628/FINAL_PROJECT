@@ -64,8 +64,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
+        var rawMsg = e.toString().replaceFirst('Exception: ', '').trim();
+        if (rawMsg == 'Error' || rawMsg.isEmpty) {
+          rawMsg = 'An error occurred during registration. Please verify your details.';
+        }
         setState(() {
-          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+          _errorMessage = rawMsg;
         });
       }
     } finally {
@@ -109,7 +113,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Error Banner
+                // Error Banner with full descriptive error message
                 if (_errorMessage != null) ...[
                   Container(
                     padding: const EdgeInsets.all(12),
