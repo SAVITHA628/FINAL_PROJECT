@@ -29,12 +29,20 @@ export default function TATReportPage() {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    itemService.getAllItems().then((data) => {
-      setAllItems(data);
-      setFiltered(data);
-      setChartData(groupByMonth(data));
-      setLoading(false);
-    });
+    async function load() {
+      try {
+        const data = await itemService.getAllItems();
+        setAllItems(data);
+        setFiltered(data);
+        setChartData(groupByMonth(data));
+      } catch (err) {
+        setAllItems([]);
+        setFiltered([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
   const handleFilter = () => {

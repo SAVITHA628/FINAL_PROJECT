@@ -1,15 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/user_model.dart';
 import 'app_providers.dart';
-
-// Firebase Auth state stream listener
-final authStateStreamProvider = StreamProvider<User?>((ref) {
-  final isFirebase = ref.watch(isFirebaseInitializedProvider);
-  if (!isFirebase) return Stream.value(null);
-  return FirebaseAuth.instance.authStateChanges();
-});
 
 // Router notifier for GoRouter refreshListenable
 class RouterNotifier extends ChangeNotifier {
@@ -26,7 +18,7 @@ final routerNotifierProvider = Provider<RouterNotifier>((ref) {
   return RouterNotifier(ref);
 });
 
-// Auth notifier state management for login, register, logout, password reset
+// Auth notifier state management
 final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, AsyncValue<UserModel?>>((ref) {
   return AuthNotifier(ref);
@@ -82,8 +74,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
 
   Future<void> sendPasswordReset(String email) async {
     try {
-      final repo = _ref.read(userRepositoryProvider);
-      await repo.sendPasswordReset(email);
+      await _ref.read(userRepositoryProvider).sendPasswordReset(email);
     } catch (e) {
       rethrow;
     }
@@ -92,8 +83,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> logout() async {
     state = const AsyncValue.loading();
     try {
-      final repo = _ref.read(userRepositoryProvider);
-      await repo.logout();
+      await _ref.read(userRepositoryProvider).logout();
       state = const AsyncValue.data(null);
       _ref.invalidate(currentUserProvider);
     } catch (e, stack) {

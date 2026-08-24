@@ -126,7 +126,7 @@ class ProfileScreen extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: user.role == 'admin'
-                                  ? AppColors.primary.withValues(alpha: 0.15)
+                                  ? AppColors.primary.withOpacity(0.15)
                                   : AppColors.surfaceLight,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(

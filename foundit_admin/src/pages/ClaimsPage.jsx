@@ -15,10 +15,18 @@ export default function ClaimsPage() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    itemService.getClaimedItems().then((data) => {
-      setItems(data);
-      setLoading(false);
-    });
+    async function load() {
+      try {
+        const data = await itemService.getAllItems();
+        const claimed = data.filter(i => i.status === 'claimed' || i.status === 'returned');
+        setItems(claimed);
+      } catch (err) {
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
   useEffect(() => {

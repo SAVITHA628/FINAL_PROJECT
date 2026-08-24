@@ -29,7 +29,7 @@ class MockData {
       location: 'Library Cafeteria, Block B',
       dateLostOrFound: DateTime.now().subtract(const Duration(days: 2)),
       imageUrl:
-          'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80',
       status: ItemStatus.active,
       reportedBy: 'user_001',
       reporterName: 'Jash',
@@ -46,7 +46,7 @@ class MockData {
       location: 'Main Parking Lot',
       dateLostOrFound: DateTime.now().subtract(const Duration(days: 1)),
       imageUrl:
-          'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1578574577315-3fbeb0cecdc2?w=600&auto=format&fit=crop&q=80',
       status: ItemStatus.active,
       reportedBy: 'user_002',
       reporterName: 'Rohan Kumar',
@@ -63,7 +63,7 @@ class MockData {
       location: 'Central Canteen',
       dateLostOrFound: DateTime.now().subtract(const Duration(hours: 6)),
       imageUrl:
-          'https://images.unsplash.com/photo-1583473848882-f9a5bc7fd2ee?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1583473848882-f9a5bc7fd2ee?w=600&auto=format&fit=crop&q=80',
       status: ItemStatus.active,
       reportedBy: 'user_003',
       reporterName: 'Anita Desai',
@@ -80,7 +80,7 @@ class MockData {
       location: 'Football Ground',
       dateLostOrFound: DateTime.now().subtract(const Duration(days: 3)),
       imageUrl:
-          'https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80',
       status: ItemStatus.claimed,
       reportedBy: 'user_004',
       reporterName: 'Vikram Singh',
@@ -99,7 +99,7 @@ class MockData {
       location: 'Computer Lab 204, Block A',
       dateLostOrFound: DateTime.now().subtract(const Duration(hours: 12)),
       imageUrl:
-          'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&auto=format&fit=crop&q=80',
       status: ItemStatus.active,
       reportedBy: 'user_005',
       reporterName: 'Meena Patel',
@@ -116,7 +116,7 @@ class MockData {
       location: 'Auditorium Entrance',
       dateLostOrFound: DateTime.now().subtract(const Duration(days: 5)),
       imageUrl:
-          'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80',
       status: ItemStatus.returned,
       reportedBy: 'user_002',
       reporterName: 'Rohan Kumar',

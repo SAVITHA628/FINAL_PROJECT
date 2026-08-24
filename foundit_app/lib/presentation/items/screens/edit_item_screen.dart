@@ -1,5 +1,4 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,7 @@ import '../../../core/enums/item_status.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/models/item_model.dart';
 import '../../../providers/app_providers.dart';
+import '../../common/widgets/app_image.dart';
 
 class EditItemScreen extends ConsumerStatefulWidget {
   final String itemId;
@@ -29,7 +29,8 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
   ItemModel? _item;
   ItemStatus _status = ItemStatus.active;
   String _category = 'Electronics';
-  File? _newImageFile;
+
+  String? _newBase64Image;
   bool _isLoading = false;
 
   final List<String> _categories = [
@@ -76,9 +77,17 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null && !kIsWeb) {
-      setState(() => _newImageFile = File(pickedFile.path));
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+
+      setState(() {
+        _newBase64Image = base64String;
+      });
     }
   }
 
@@ -87,14 +96,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
     setState(() => _isLoading = true);
     try {
-      String? updatedImageUrl = _item!.imageUrl;
-
-      final isFirebase = ref.read(isFirebaseInitializedProvider);
-      if (isFirebase && _newImageFile != null) {
-        updatedImageUrl = await ref
-            .read(firebaseStorageServiceProvider)
-            .uploadItemImage(_item!.reportedBy, _newImageFile!);
-      }
+      String? updatedImageUrl = _newBase64Image ?? _item!.imageUrl;
 
       final updatedItem = _item!.copyWith(
         title: _titleCtrl.text.trim(),
@@ -141,6 +143,8 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
       );
     }
 
+    final currentDisplayImage = _newBase64Image ?? _item!.imageUrl;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -154,44 +158,57 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image Box
+                // Image Container with AppImage
                 GestureDetector(
                   onTap: _pickImage,
                   child: Container(
                     width: double.infinity,
-                    height: 140,
+                    height: 180,
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppColors.border),
                     ),
-                    child: _newImageFile != null
-                        ? ClipRRect(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: AppImage(
+                            imageUrl: currentDisplayImage,
+                            fit: BoxFit.contain,
                             borderRadius: BorderRadius.circular(16),
-                            child:
-                                Image.file(_newImageFile!, fit: BoxFit.cover),
-                          )
-                        : _item!.imageUrl != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.network(_item!.imageUrl!,
-                                    fit: BoxFit.cover),
-                              )
-                            : const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_a_photo_rounded,
-                                      size: 32, color: AppColors.primary),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Tap to replace photo',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 13,
-                                    ),
+                            category: _category,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 10,
+                          right: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.camera_alt_rounded,
+                                    size: 14, color: Colors.white),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Change Photo',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -215,7 +232,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
                 // Category
                 DropdownButtonFormField<String>(
-                  value: _categories.contains(_category)
+                  initialValue: _categories.contains(_category)
                       ? _category
                       : _categories.first,
                   decoration: const InputDecoration(labelText: 'Category'),
@@ -244,7 +261,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
                 // Status Selector
                 DropdownButtonFormField<ItemStatus>(
-                  value: _status,
+                  initialValue: _status,
                   decoration: const InputDecoration(labelText: 'Status'),
                   dropdownColor: AppColors.surface,
                   items: ItemStatus.values

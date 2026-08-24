@@ -10,8 +10,11 @@ export default function ReturnedPage() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await itemService.getReturnedItems();
-        setItems(data);
+        const data = await itemService.getAllItems();
+        const returned = data.filter(i => i.status === 'returned');
+        setItems(returned);
+      } catch (err) {
+        setItems([]);
       } finally {
         setLoading(false);
       }

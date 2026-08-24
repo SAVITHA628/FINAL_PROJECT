@@ -1,5 +1,4 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +12,7 @@ import '../../../core/enums/verification_status.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/models/item_model.dart';
 import '../../../providers/app_providers.dart';
+import '../../common/widgets/app_image.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
   const AddItemScreen({super.key});
@@ -31,8 +31,8 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   String _category = 'Electronics';
   DateTime _dateLostOrFound = DateTime.now();
 
-  File? _selectedImageFile;
-  Uint8List? _webImageBytes;
+
+  String? _base64ImageUrl;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -63,19 +63,19 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     );
 
     if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() {
-          _webImageBytes = bytes;
-          _selectedImageFile = null;
-        });
-      } else {
-        setState(() {
-          _selectedImageFile = File(pickedFile.path);
-          _webImageBytes = null;
-        });
-      }
+      final bytes = await pickedFile.readAsBytes();
+      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+
+      setState(() {
+        _base64ImageUrl = base64String;
+      });
     }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _base64ImageUrl = null;
+    });
   }
 
   Future<void> _selectDate() async {
@@ -117,14 +117,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       final reporterName = currentUser?.name ?? 'Guest Reporter';
       final reporterPhone = currentUser?.phone ?? '+919876543210';
 
-      String? imageUrl;
-      final isFirebase = ref.read(isFirebaseInitializedProvider);
-
-      if (isFirebase && _selectedImageFile != null) {
-        imageUrl = await ref
-            .read(firebaseStorageServiceProvider)
-            .uploadItemImage(userId, _selectedImageFile!);
-      }
+      String? finalImageUrl = _base64ImageUrl;
 
       final newItem = ItemModel(
         id: 'item_${DateTime.now().millisecondsSinceEpoch}',
@@ -134,7 +127,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         category: _category,
         location: _locationCtrl.text.trim(),
         dateLostOrFound: _dateLostOrFound,
-        imageUrl: imageUrl,
+        imageUrl: finalImageUrl,
         status: ItemStatus.active,
         verificationStatus: VerificationStatus.pending,
         reportedBy: userId,
@@ -157,6 +150,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         );
         ref.invalidate(activeItemsProvider);
         ref.invalidate(myReportedItemsProvider);
+        ref.invalidate(aiMatchesProvider);
         context.pop();
       }
     } catch (e) {
@@ -189,10 +183,10 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.12),
+                      color: AppColors.error.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.3),
+                        color: AppColors.error.withOpacity(0.3),
                       ),
                     ),
                     child: Text(_errorMessage!,
@@ -220,7 +214,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
                             color: _itemType == ItemType.lost
-                                ? AppColors.error.withValues(alpha: 0.15)
+                                ? AppColors.error.withOpacity(0.15)
                                 : AppColors.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
@@ -262,7 +256,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
                             color: _itemType == ItemType.found
-                                ? AppColors.success.withValues(alpha: 0.15)
+                                ? AppColors.success.withOpacity(0.15)
                                 : AppColors.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
@@ -300,7 +294,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Image Picker Box
+                // Image Picker Container with Clean Preview
                 const Text(
                   'Item Image',
                   style: TextStyle(
@@ -310,46 +304,87 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: Container(
-                    width: double.infinity,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: _selectedImageFile != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.file(_selectedImageFile!,
-                                fit: BoxFit.cover),
-                          )
-                        : _webImageBytes != null
-                            ? ClipRRect(
+                _base64ImageUrl != null
+                    ? Container(
+                        width: double.infinity,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.primary),
+                        ),
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: AppImage(
+                                imageUrl: _base64ImageUrl,
+                                fit: BoxFit.contain,
                                 borderRadius: BorderRadius.circular(16),
-                                child: Image.memory(_webImageBytes!,
-                                    fit: BoxFit.cover),
-                              )
-                            : const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                category: _category,
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Row(
                                 children: [
-                                  Icon(Icons.add_a_photo_rounded,
-                                      size: 32, color: AppColors.primary),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Tap to select item photo',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
+                                  IconButton.filledTonal(
+                                    onPressed: _pickImage,
+                                    icon: const Icon(Icons.edit_rounded, size: 18),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: AppColors.surfaceElevated,
+                                      foregroundColor: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  IconButton.filledTonal(
+                                    onPressed: _removeImage,
+                                    icon: const Icon(Icons.delete_rounded, size: 18),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: AppColors.error.withOpacity(0.2),
+                                      foregroundColor: AppColors.error,
                                     ),
                                   ),
                                 ],
                               ),
-                  ),
-                ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          width: double.infinity,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.border,
+                              style: BorderStyle.solid,
+                            ),
+                          ),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_a_photo_rounded,
+                                size: 36,
+                                color: AppColors.primary,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Tap to select or upload item photo',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                 const SizedBox(height: 20),
 
                 // Title Input
@@ -377,7 +412,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
 
                 // Category Dropdown
                 DropdownButtonFormField<String>(
-                  value: _category,
+                  initialValue: _category,
                   decoration: const InputDecoration(
                     labelText: 'Category',
                   ),

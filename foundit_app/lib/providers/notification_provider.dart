@@ -1,19 +1,13 @@
+// Notification provider - Firestore-free stub for offline build
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/notification_model.dart';
 import '../data/services/fcm_service.dart';
-import 'app_providers.dart';
 
 final fcmServiceProvider = Provider<FcmService>((ref) => FcmService());
 
 final userNotificationsProvider =
     StreamProvider<List<NotificationModel>>((ref) async* {
-  final user = await ref.watch(currentUserProvider.future);
-  if (user == null) {
-    yield [];
-    return;
-  }
-  final fcm = ref.watch(fcmServiceProvider);
-  yield* fcm.streamNotifications(user.uid);
+  yield [];
 });
 
 final unreadNotificationCountProvider = Provider<int>((ref) {

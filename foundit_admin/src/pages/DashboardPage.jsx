@@ -33,6 +33,18 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) return <LoadingSpinner text="Loading dashboard..." />;
+  if (!stats) return (
+    <div className="page-container">
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <h3 style={{ color: 'var(--text-primary)', marginBottom: 8 }}>Unable to load dashboard data</h3>
+        <p>Could not connect to Firebase. Check your internet connection.</p>
+        <button className="btn-primary" style={{ marginTop: 20 }} onClick={() => window.location.reload()}>
+          🔄 Retry
+        </button>
+      </div>
+    </div>
+  );
 
   const statCards = [
     { label: 'Total Items',  value: stats.total,   icon: '📦', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },

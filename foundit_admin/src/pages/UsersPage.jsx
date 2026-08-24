@@ -17,9 +17,14 @@ export default function UsersPage() {
   const [actionType, setActionType] = useState('');
 
   const loadUsers = async () => {
-    const data = await userService.getAllUsers();
-    setUsers(data);
-    setLoading(false);
+    try {
+      const data = await userService.getAllUsers();
+      setUsers(data);
+    } catch (err) {
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { loadUsers(); }, []);

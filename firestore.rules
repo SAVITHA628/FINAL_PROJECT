@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helper functions ──────────────────────────────────────────────
+    // ── Helpers ──────────────────────────────────────────────────
     function isAuth() {
       return request.auth != null;
     }
@@ -25,31 +25,29 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(uid())).data.isActive != false;
     }
 
-    // ── users ─────────────────────────────────────────────────────────
+    // ── USERS ────────────────────────────────────────────────────
+    // Admin: full access to all users
+    // User: read/update own profile only
     match /users/{userId} {
       allow read:   if isOwner(userId) || isAdmin();
-      allow create: if isAuth() && uid() == userId && (request.resource.data.role == 'user' || isAdmin());
-      allow update: if (isOwner(userId) && (request.resource.data.role == resource.data.role || isAdmin())) || isAdmin();
+      allow create: if isAuth() && uid() == userId;
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
     }
 
-    // ── items ─────────────────────────────────────────────────────────
+    // ── ITEMS ────────────────────────────────────────────────────
+    // Admin: full access to all items
+    // User: read all active items, write/update own items
     match /items/{itemId} {
-      allow read: if isActiveUser() && (resource.data.isActive == true || isAdmin());
-      allow create: if isActiveUser()
-                    && request.resource.data.reportedBy == uid()
-                    && request.resource.data.isActive == true;
+      allow read:   if isAuth();
+      allow create: if isActiveUser() && request.resource.data.reportedBy == uid();
       allow update: if isAdmin() || (isOwner(resource.data.reportedBy) && isActiveUser());
       allow delete: if isAdmin() || isOwner(resource.data.reportedBy);
     }
 
-    // ── matches ───────────────────────────────────────────────────────
-    match /matches/{matchId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
-    }
-
-    // ── notifications ─────────────────────────────────────────────────
+    // ── NOTIFICATIONS ────────────────────────────────────────────
+    // Admin: full access
+    // User: read/update own notifications
     match /notifications/{notifId} {
       allow read:   if isAuth() && (resource.data.recipientId == uid() || isAdmin());
       allow create: if isAuth();
@@ -57,8 +55,17 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── admin_stats ────────────────────────────────────────────────────
-    match /admin_stats/{doc} {
+    // ── MATCHES ──────────────────────────────────────────────────
+    // Admin: full access
+    // User: read only
+    match /matches/{matchId} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ── ADMIN STATS ──────────────────────────────────────────────
+    // Admin only
+    match /admin_stats/{document} {
       allow read:  if isAdmin();
       allow write: if isAdmin();
     }

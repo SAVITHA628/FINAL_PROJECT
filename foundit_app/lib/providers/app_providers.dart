@@ -5,32 +5,31 @@ import '../data/models/item_model.dart';
 import '../data/models/user_model.dart';
 import '../data/repositories/item_repository.dart';
 import '../data/repositories/user_repository.dart';
-import '../data/services/firebase_auth_service.dart';
-import '../data/services/firebase_storage_service.dart';
-import '../data/services/firestore_service.dart';
+import '../data/services/ai_match_service.dart';
 import '../data/services/mock_auth_service.dart';
 import '../data/services/mock_item_service.dart';
 
-// Firebase initialization flag provider
+// Always use mock services (Firebase removed for stability)
 final isFirebaseInitializedProvider = Provider<bool>((ref) => false);
 
-// Storage service provider
-final firebaseStorageServiceProvider =
-    Provider<FirebaseStorageService>((ref) => FirebaseStorageService());
+// AI Match Service Provider
+final aiMatchServiceProvider = Provider<AiMatchService>((ref) => AiMatchService());
 
-// Repository instances with automatic service selection (Firebase vs Mock)
+// AI Match Scan Results Provider
+final aiMatchesProvider = FutureProvider<List<AiMatchResult>>((ref) async {
+  final repo = ref.watch(itemRepositoryProvider);
+  final aiService = ref.watch(aiMatchServiceProvider);
+  final allItems = await repo.getActiveItems();
+  return aiService.scanMatches(allItems);
+});
+
+// Always use Mock services
 final itemRepositoryProvider = Provider<ItemRepository>((ref) {
-  final isFirebase = ref.watch(isFirebaseInitializedProvider);
-  return ItemRepository(
-    service: isFirebase ? FirestoreService() : MockItemService(),
-  );
+  return ItemRepository(service: MockItemService());
 });
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
-  final isFirebase = ref.watch(isFirebaseInitializedProvider);
-  return UserRepository(
-    service: isFirebase ? FirebaseAuthService() : MockAuthService(),
-  );
+  return UserRepository(service: MockAuthService());
 });
 
 // User state
@@ -38,7 +37,7 @@ final currentUserProvider = FutureProvider<UserModel?>((ref) async {
   return ref.watch(userRepositoryProvider).getCurrentUser();
 });
 
-// Selected Type Filter (all, lost, found)
+// Selected Type Filter
 final itemTypeFilterProvider = StateProvider<ItemType?>((ref) => null);
 
 // Active items list provider

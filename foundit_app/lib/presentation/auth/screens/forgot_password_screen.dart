@@ -94,10 +94,10 @@ class _ForgotPasswordScreenState
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.12),
+                      color: AppColors.success.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: AppColors.success.withValues(alpha: 0.3),
+                        color: AppColors.success.withOpacity(0.3),
                       ),
                     ),
                     child: Column(
@@ -136,10 +136,10 @@ class _ForgotPasswordScreenState
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.12),
+                      color: AppColors.error.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.3),
+                        color: AppColors.error.withOpacity(0.3),
                       ),
                     ),
                     child: Text(

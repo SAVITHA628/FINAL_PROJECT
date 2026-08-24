@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/launcher_utils.dart';
 import '../../../data/models/item_model.dart';
 import '../../../providers/app_providers.dart';
+import 'app_image.dart';
 import 'status_badge.dart';
 import 'type_badge.dart';
 import 'verification_badge.dart';
@@ -18,36 +19,6 @@ class ItemCard extends ConsumerWidget {
     required this.item,
     required this.onTap,
   });
-
-  IconData _getCategoryIcon(String category) {
-    final cat = category.toLowerCase();
-    if (cat.contains('phone') || cat.contains('electro') || cat.contains('charger')) {
-      return Icons.devices_other_rounded;
-    } else if (cat.contains('card') || cat.contains('id')) {
-      return Icons.badge_rounded;
-    } else if (cat.contains('key')) {
-      return Icons.vpn_key_rounded;
-    } else if (cat.contains('wallet')) {
-      return Icons.account_balance_wallet_rounded;
-    } else if (cat.contains('bag') || cat.contains('pack')) {
-      return Icons.backpack_rounded;
-    }
-    return Icons.shopping_bag_rounded;
-  }
-
-  LinearGradient _getCategoryGradient(String category) {
-    final cat = category.toLowerCase();
-    if (cat.contains('phone') || cat.contains('electro')) {
-      return const LinearGradient(colors: [Color(0xFF2563EB), Color(0xFF3B82F6)]);
-    } else if (cat.contains('card') || cat.contains('id')) {
-      return const LinearGradient(colors: [Color(0xFF7C3AED), Color(0xFF8B5CF6)]);
-    } else if (cat.contains('key')) {
-      return const LinearGradient(colors: [Color(0xFFD97706), Color(0xFFF59E0B)]);
-    } else if (cat.contains('wallet')) {
-      return const LinearGradient(colors: [Color(0xFF059669), Color(0xFF10B981)]);
-    }
-    return const LinearGradient(colors: [Color(0xFF4F46E5), Color(0xFF6366F1)]);
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,36 +44,13 @@ class ItemCard extends ConsumerWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Image Thumbnail with Hero transition & fallback category gradient
-                  ClipRRect(
+                  // AppImage handles base64, network, file, and fallback gracefully
+                  AppImage(
+                    imageUrl: item.imageUrl,
+                    width: 96,
+                    height: 96,
                     borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        gradient: _getCategoryGradient(item.category),
-                      ),
-                      child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                          ? Image.network(
-                              item.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Center(
-                                child: Icon(
-                                  _getCategoryIcon(item.category),
-                                  size: 40,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Icon(
-                                _getCategoryIcon(item.category),
-                                size: 40,
-                                color: Colors.white,
-                              ),
-                            ),
-                    ),
+                    category: item.category,
                   ),
                   const SizedBox(width: 14),
 
@@ -206,7 +154,7 @@ class ItemCard extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.15),
+                          color: AppColors.primary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Row(
@@ -241,7 +189,7 @@ class ItemCard extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.15),
+                          color: AppColors.success.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Row(

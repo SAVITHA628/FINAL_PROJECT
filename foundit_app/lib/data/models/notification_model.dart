@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NotificationModel {
   final String id;
@@ -30,15 +29,13 @@ class NotificationModel {
       'type': type,
       'itemId': itemId,
       'isRead': isRead,
-      'createdAt': createdAt != null
-          ? Timestamp.fromDate(createdAt!)
-          : FieldValue.serverTimestamp(),
+      'createdAt': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
     };
   }
 
   factory NotificationModel.fromMap(String docId, Map<String, dynamic> map) {
     DateTime? parseDate(dynamic val) {
-      if (val is Timestamp) return val.toDate();
+      if (val is DateTime) return val;
       if (val is String) return DateTime.tryParse(val);
       return null;
     }

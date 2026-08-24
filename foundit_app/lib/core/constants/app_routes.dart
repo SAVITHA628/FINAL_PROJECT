@@ -14,4 +14,5 @@ class AppRoutes {
   static const favourites = '/favourites';
   static const profile = '/profile';
   static const notifications = '/notifications';
+  static const aiMatches = '/ai-matches';
 }

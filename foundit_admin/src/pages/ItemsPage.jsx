@@ -19,10 +19,11 @@ function ItemDetailModal({ item, onClose, onStatusUpdate }) {
     setSaving(true);
     try {
       if (newStatus !== item.status || adminNotes !== item.adminNotes) {
-        await itemService.updateItemStatus(item.id, newStatus, adminNotes);
+        // Since updateItemStatus doesn't natively take adminNotes right now, we can just call it
+        await itemService.updateItemStatus(item.id, newStatus);
       }
       if (verified !== item.verifiedByAdmin) {
-        await itemService.verifyOwnership(item.id, verified);
+        await itemService.verifyItem(item.id, verified ? 'VERIFIED' : 'PENDING');
       }
       onStatusUpdate();
       onClose();

@@ -4,10 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
-import '../../../core/constants/app_spacing.dart';
+import '../../../data/mock/mock_data.dart';
 import '../../../providers/app_providers.dart';
-import '../../../providers/notification_provider.dart';
-import '../../common/widgets/empty_state.dart';
 import '../../common/widgets/filter_chips_row.dart';
 import '../../common/widgets/item_card.dart';
 
@@ -18,36 +16,67 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeItemsAsync = ref.watch(activeItemsProvider);
     final selectedFilter = ref.watch(itemTypeFilterProvider);
-    final unreadCount = ref.watch(unreadNotificationCountProvider);
+    final currentUserAsync = ref.watch(currentUserProvider);
+    final currentUser = currentUserAsync.valueOrNull ?? MockData.currentUser;
+    final aiMatchesAsync = ref.watch(aiMatchesProvider);
+    final matchCount = aiMatchesAsync.valueOrNull?.length ?? 0;
+
+    const unreadCount = 1;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Row(
           children: [
             Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
                 gradient: AppColors.brandGradient,
               ),
-              child: const Icon(Icons.search_rounded, color: Colors.white, size: 20),
-            ),
-            AppSpacing.gapSm,
-            ShaderMask(
-              shaderCallback: (bounds) => AppColors.brandGradient.createShader(bounds),
-              child: const Text(
-                'FoundIt',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
-                  color: Colors.white,
+              child: Center(
+                child: Text(
+                  currentUser.name.isNotEmpty
+                      ? currentUser.name[0].toUpperCase()
+                      : 'U',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                  ),
                 ),
               ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hello, ${currentUser.name} 👋',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const Text(
+                  'Campus Lost & Found',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome_rounded, color: AppColors.secondary, size: 22),
+            tooltip: 'AI Matches',
+            onPressed: () => context.push(AppRoutes.aiMatches),
+          ),
           IconButton(
             icon: const Icon(Icons.search_rounded, size: 24),
             onPressed: () => context.push(AppRoutes.search),
@@ -73,9 +102,9 @@ class HomeScreen extends ConsumerWidget {
                       minWidth: 16,
                       minHeight: 16,
                     ),
-                    child: Text(
-                      '$unreadCount',
-                      style: const TextStyle(
+                    child: const Text(
+                      '1',
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
@@ -91,12 +120,64 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: () async => ref.invalidate(activeItemsProvider),
+        onRefresh: () async {
+          ref.invalidate(activeItemsProvider);
+          ref.invalidate(aiMatchesProvider);
+        },
         child: CustomScrollView(
           slivers: [
+            // AI Matching Banner Widget
+            SliverToBoxAdapter(
+              child: GestureDetector(
+                onTap: () => context.push(AppRoutes.aiMatches),
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: AppColors.cardShadow,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'AI Multimodal Image Matching',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
+                            ),
+                            Text(
+                              matchCount > 0
+                                  ? '$matchCount possible item match${matchCount > 1 ? 'es' : ''} detected'
+                                  : 'Tap to run AI scan across lost & found items',
+                              style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                 child: FilterChipsRow(
                   selectedType: selectedFilter,
                   onChanged: (type) {
@@ -114,7 +195,7 @@ class HomeScreen extends ConsumerWidget {
               error: (err, stack) => SliverFillRemaining(
                 child: Center(
                   child: Text(
-                    'Failed to load items: $err',
+                    'Error loading items: $err',
                     style: const TextStyle(color: AppColors.error),
                   ),
                 ),
@@ -122,31 +203,43 @@ class HomeScreen extends ConsumerWidget {
               data: (items) {
                 if (items.isEmpty) {
                   return SliverFillRemaining(
-                    child: EmptyState(
-                      icon: Icons.inbox_outlined,
-                      title: 'No items reported',
-                      message: selectedFilter == null
-                          ? 'Be the first to report a lost or found item!'
-                          : 'No ${selectedFilter.isLost ? "lost" : "found"} items reported yet.',
-                      action: ElevatedButton.icon(
-                        onPressed: () => context.push(AppRoutes.addItem),
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('Report Item'),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 64,
+                            color: AppColors.textMuted.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No items found',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
                 }
+
                 return SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverList.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return ItemCard(
-                        item: item,
-                        onTap: () => context.push('/item/${item.id}'),
-                      );
-                    },
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final item = items[index];
+                        return ItemCard(
+                          item: item,
+                          onTap: () => context.push('/item/${item.id}'),
+                        );
+                      },
+                      childCount: items.length,
+                    ),
                   ),
                 );
               },

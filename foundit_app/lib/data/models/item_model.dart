@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../core/enums/item_status.dart';
 import '../../core/enums/item_type.dart';
 import '../../core/enums/verification_status.dart';
@@ -60,9 +60,7 @@ class ItemModel {
       'description': description,
       'category': category,
       'location': location,
-      'dateLostOrFound': dateLostOrFound != null
-          ? Timestamp.fromDate(dateLostOrFound!)
-          : FieldValue.serverTimestamp(),
+      'dateLostOrFound': dateLostOrFound?.toIso8601String(),
       'imageUrl': imageUrl,
       'status': status.name.toUpperCase(),
       'itemStatus': status.name.toUpperCase(),
@@ -71,21 +69,19 @@ class ItemModel {
       'reporterName': reporterName,
       'reporterPhone': reporterPhone,
       'claimedBy': claimedBy,
-      'claimedAt': claimedAt != null ? Timestamp.fromDate(claimedAt!) : null,
-      'returnedAt': returnedAt != null ? Timestamp.fromDate(returnedAt!) : null,
+      'claimedAt': claimedAt?.toIso8601String(),
+      'returnedAt': returnedAt?.toIso8601String(),
       'verifiedByAdmin': verifiedByAdmin,
       'adminNotes': adminNotes,
       'isActive': isActive,
-      'createdAt': createdAt != null
-          ? Timestamp.fromDate(createdAt!)
-          : FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
+      'createdAt': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
     };
   }
 
   factory ItemModel.fromMap(String docId, Map<String, dynamic> map) {
     DateTime? parseDate(dynamic val) {
-      if (val is Timestamp) return val.toDate();
+      if (val is DateTime) return val;
       if (val is String) return DateTime.tryParse(val);
       return null;
     }

@@ -11,8 +11,11 @@ export default function PendingVerificationPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const data = await itemService.getPendingVerificationItems();
-      setItems(data);
+      const data = await itemService.getAllItems();
+      const pending = data.filter(i => i.verificationStatus === 'PENDING');
+      setItems(pending);
+    } catch (err) {
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -23,12 +26,12 @@ export default function PendingVerificationPage() {
   }, []);
 
   const handleVerify = async (itemId) => {
-    await itemService.verifyOwnership(itemId, true);
+    await itemService.verifyItem(itemId, 'VERIFIED');
     loadData();
   };
 
   const handleReject = async (itemId) => {
-    await itemService.rejectVerification(itemId);
+    await itemService.verifyItem(itemId, 'REJECTED');
     loadData();
   };
 

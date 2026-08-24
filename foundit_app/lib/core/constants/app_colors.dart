@@ -13,6 +13,7 @@ class AppColors {
   static const background = Color(0xFF0F1117);   // Dark Midnight
   static const surface = Color(0xFF1A1D2E);      // Dark Slate Surface
   static const surfaceLight = Color(0xFF242840); // Elevated Slate
+  static const surfaceElevated = Color(0xFF242840); // Elevated Slate Alias
   static const card = Color(0xFF1E2235);         // Card Slate
 
   // Text Colors
@@ -45,7 +46,7 @@ class AppColors {
 
   static final cardShadow = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.25),
+      color: Colors.black.withOpacity(0.25),
       blurRadius: 12,
       offset: const Offset(0, 4),
     ),

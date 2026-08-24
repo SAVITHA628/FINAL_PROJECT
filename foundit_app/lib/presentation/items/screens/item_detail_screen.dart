@@ -8,6 +8,7 @@ import '../../../core/enums/item_type.dart';
 import '../../../core/utils/launcher_utils.dart';
 import '../../../data/models/item_model.dart';
 import '../../../providers/app_providers.dart';
+import '../../common/widgets/app_image.dart';
 import '../../common/widgets/status_badge.dart';
 import '../../common/widgets/type_badge.dart';
 import '../../common/widgets/verification_badge.dart';
@@ -95,32 +96,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Image Box
+                // Robust Image Display box with AppImage
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: Container(
+                  child: AppImage(
+                    imageUrl: item.imageUrl,
                     width: double.infinity,
-                    height: 220,
-                    color: AppColors.surface,
-                    child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                        ? Image.network(item.imageUrl!, fit: BoxFit.cover)
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                item.type.isLost
-                                    ? Icons.search_off_rounded
-                                    : Icons.check_circle_outline_rounded,
-                                size: 56,
-                                color: AppColors.textMuted,
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'No photo attached',
-                                style: TextStyle(color: AppColors.textMuted),
-                              ),
-                            ],
-                          ),
+                    height: 240,
+                    fit: BoxFit.cover,
+                    category: item.category,
                   ),
                 ),
                 const SizedBox(height: 20),
