@@ -5,8 +5,8 @@ import '../../core/enums/item_status.dart';
 import '../../core/enums/item_type.dart';
 import '../../core/enums/verification_status.dart';
 import '../models/item_model.dart';
-import '../models/user_model.dart';
 import 'item_service_interface.dart';
+
 
 class FirestoreService implements ItemServiceInterface {
   static const String projectId = 'foundit-6bc8a';

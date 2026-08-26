@@ -2,6 +2,7 @@ import '../mock/mock_data.dart';
 import '../models/user_model.dart';
 import 'auth_service_interface.dart';
 
+// ignore: constant_identifier_names
 const ADMIN_EMAILS = [
   'admin@foundit.com',
   'admin@foundit.app',
