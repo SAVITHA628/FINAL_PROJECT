@@ -4,23 +4,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 
-const MOCK_USERS = [
-  {
-    id: 'user_001', name: 'Jash', email: 'jashrishi@gmail.com',
-    phone: '+919876543210', role: 'admin', isActive: true,
-    createdAt: new Date(Date.now() - 86400000 * 30),
-  },
-  {
-    id: 'user_002', name: 'Savitha', email: 'savitha609@gmail.com',
-    phone: '+919876543211', role: 'admin', isActive: true,
-    createdAt: new Date(Date.now() - 86400000 * 20),
-  },
-  {
-    id: 'user_003', name: 'Rohan Kumar', email: 'rohan@college.edu',
-    phone: '+919876543212', role: 'user', isActive: true,
-    createdAt: new Date(Date.now() - 86400000 * 15),
-  },
-];
+const MOCK_USERS = [];
 
 export const userService = {
   async getAllUsers() {
@@ -51,8 +35,8 @@ export const userService = {
 
       return users;
     } catch (err) {
-      console.warn('getAllUsers notice (using fallback):', err.message);
-      return MOCK_USERS;
+      console.warn('getAllUsers notice:', err.message);
+      return [];
     }
   },
 
@@ -60,9 +44,9 @@ export const userService = {
     try {
       const snap = await getDoc(doc(db, 'users', userId));
       if (snap.exists()) return { id: snap.id, ...snap.data() };
-      return MOCK_USERS.find(u => u.id === userId) ?? null;
+      return null;
     } catch {
-      return MOCK_USERS.find(u => u.id === userId) ?? null;
+      return null;
     }
   },
 

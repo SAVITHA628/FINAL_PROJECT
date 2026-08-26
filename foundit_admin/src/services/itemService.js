@@ -4,42 +4,14 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 
-// ─── Fallback Mock Data (Only used if Firestore network fails) ─────────
-const MOCK_ITEMS = [
-  {
-    id: 'item_001', type: 'lost', title: 'Blue Samsung Galaxy A54',
-    description: 'Lost blue Samsung phone near library cafeteria with stickers.',
-    category: 'Electronics', location: 'Library Cafeteria',
-    status: 'active', verificationStatus: 'PENDING',
-    imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80',
-    reportedBy: 'user_001', reporterName: 'Jash', reporterPhone: '+919876543210',
-    createdAt: new Date(Date.now() - 86400000 * 2), isActive: true,
-  },
-  {
-    id: 'item_002', type: 'found', title: 'College ID Card - Priya Sharma',
-    description: 'Found ID card near parking lot. Roll: CSE-2024-042.',
-    category: 'ID Card', location: 'Main Parking Lot',
-    status: 'active', verificationStatus: 'VERIFIED', verifiedByAdmin: true,
-    imageUrl: 'https://images.unsplash.com/photo-1578574577315-3fbeb0cecdc2?w=400&q=80',
-    reportedBy: 'user_002', reporterName: 'Rohan Kumar', reporterPhone: '+919876543211',
-    createdAt: new Date(Date.now() - 86400000), isActive: true,
-  },
-  {
-    id: 'item_003', type: 'lost', title: 'Silver Car Keys with Red Keychain',
-    description: 'Maruti Suzuki keys with red keychain last seen in canteen.',
-    category: 'Keys', location: 'Central Canteen',
-    status: 'active', verificationStatus: 'PENDING',
-    imageUrl: 'https://images.unsplash.com/photo-1583473848882-f9a5bc7fd2ee?w=400&q=80',
-    reportedBy: 'user_003', reporterName: 'Anita Desai', reporterPhone: '+919876543212',
-    createdAt: new Date(Date.now() - 3600000 * 6), isActive: true,
-  },
-];
+// Pure Real-Time Firebase items only (zero demo/mock data)
+const MOCK_ITEMS = [];
 
 const ITEMS_COLLECTION = 'items';
 
 export const itemService = {
 
-  // Fetch all items from Firestore database
+  // Fetch all real items from Firestore database
   async getAllItems() {
     try {
       const itemsRef = collection(db, ITEMS_COLLECTION);
@@ -70,8 +42,8 @@ export const itemService = {
 
       return items;
     } catch (err) {
-      console.warn('Firestore getAllItems notice (using fallback):', err.message);
-      return MOCK_ITEMS;
+      console.warn('Firestore getAllItems notice:', err.message);
+      return [];
     }
   },
 
@@ -82,9 +54,9 @@ export const itemService = {
         const data = snap.data();
         return { id: snap.id, ...data, createdAt: data.createdAt?.toDate?.() ?? new Date() };
       }
-      return MOCK_ITEMS.find(i => i.id === id) ?? null;
+      return null;
     } catch {
-      return MOCK_ITEMS.find(i => i.id === id) ?? null;
+      return null;
     }
   },
 
@@ -149,10 +121,10 @@ export const itemService = {
           items.sort((a, b) => b.createdAt - a.createdAt);
           callback(items);
         },
-        () => callback(MOCK_ITEMS)
+        () => callback([])
       );
     } catch {
-      callback(MOCK_ITEMS);
+      callback([]);
       return () => {};
     }
   },
