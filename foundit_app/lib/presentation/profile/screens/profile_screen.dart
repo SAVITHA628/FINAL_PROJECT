@@ -85,7 +85,7 @@ class ProfileScreen extends ConsumerWidget {
 
           final regPhone = (user.registrationPhone?.isNotEmpty == true)
               ? user.registrationPhone!
-              : (user.phone?.isNotEmpty == true ? user.phone! : '');
+              : (user.phone?.isNotEmpty == true ? user.phone! : '+911111111111');
 
           return CustomScrollView(
             slivers: [
@@ -160,16 +160,33 @@ class ProfileScreen extends ConsumerWidget {
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      if (regPhone.isNotEmpty) ...[
-                        AppSpacing.gapXs,
-                        Text(
-                          regPhone,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textMuted,
-                          ),
+                      AppSpacing.gapSm,
+
+                      // Prominent Registration Phone Number Row
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
                         ),
-                      ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.phone_android_rounded, size: 16, color: AppColors.primary),
+                            const SizedBox(width: 8),
+                            Text(
+                              regPhone,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                       AppSpacing.gapLg,
                       const Divider(),
                       AppSpacing.gapMd,
