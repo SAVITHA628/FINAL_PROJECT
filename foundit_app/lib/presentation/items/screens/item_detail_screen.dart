@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/enums/item_status.dart';
 import '../../../core/enums/item_type.dart';
+import '../../../core/enums/verification_status.dart';
 import '../../../core/utils/launcher_utils.dart';
 import '../../../data/models/item_model.dart';
 import '../../../providers/app_providers.dart';
@@ -23,7 +24,7 @@ class ItemDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
-  bool _isClaiming = false;
+  bool _isProcessing = false;
 
   Future<void> _claimItem(ItemModel item) async {
     final user = await ref.read(currentUserProvider.future);
@@ -36,7 +37,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       return;
     }
 
-    setState(() => _isClaiming = true);
+    setState(() => _isProcessing = true);
     try {
       final repo = ref.read(itemRepositoryProvider);
       await repo.markAsClaimed(item.id, user.uid);
@@ -56,13 +57,71 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isClaiming = false);
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _adminVerifyItem(ItemModel item, VerificationStatus newVerif) async {
+    setState(() => _isProcessing = true);
+    try {
+      final repo = ref.read(itemRepositoryProvider);
+      final updated = item.copyWith(
+        verificationStatus: newVerif,
+        verifiedByAdmin: newVerif == VerificationStatus.verified,
+      );
+      await repo.updateItem(updated);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Item verification updated to ${newVerif.name.toUpperCase()}'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        ref.invalidate(activeItemsProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Admin error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _adminUpdateStatus(ItemModel item, ItemStatus newStatus) async {
+    setState(() => _isProcessing = true);
+    try {
+      final repo = ref.read(itemRepositoryProvider);
+      final updated = item.copyWith(status: newStatus);
+      await repo.updateItem(updated);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Item status changed to ${newStatus.name.toUpperCase()}'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+        ref.invalidate(activeItemsProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Admin error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final activeItemsAsync = ref.watch(activeItemsProvider);
+    final userAsync = ref.watch(currentUserProvider);
+    final currentUser = userAsync.valueOrNull;
+    final isAdmin = currentUser?.role == 'admin';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -96,7 +155,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Robust Image Display box with AppImage
+                // Robust Image Display
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: AppImage(
@@ -193,8 +252,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                         Icons.calendar_today_rounded,
                         'Date Reported',
                         item.dateLostOrFound != null
-                            ? DateFormat('dd MMM yyyy')
-                                .format(item.dateLostOrFound!)
+                            ? DateFormat('dd MMM yyyy').format(item.dateLostOrFound!)
                             : 'Recent',
                       ),
                     ],
@@ -272,8 +330,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
-                              onPressed: () =>
-                                  LauncherUtils.callPhone(item.reporterPhone),
+                              onPressed: () => LauncherUtils.callPhone(item.reporterPhone),
                               icon: const Icon(Icons.call_rounded, size: 18),
                               label: const Text('Call'),
                             ),
@@ -286,11 +343,9 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                               ),
                               onPressed: () => LauncherUtils.openWhatsApp(
                                 item.reporterPhone,
-                                message:
-                                    'Hi ${item.reporterName}, regarding item: ${item.title} on FoundIt.',
+                                message: 'Hi ${item.reporterName}, regarding item: ${item.title} on FoundIt.',
                               ),
-                              icon: const Icon(Icons.chat_bubble_rounded,
-                                  size: 18),
+                              icon: const Icon(Icons.chat_bubble_rounded, size: 18),
                               label: const Text('WhatsApp'),
                             ),
                           ),
@@ -299,16 +354,103 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // Claim Item Button
-                if (item.status == ItemStatus.active) ...[
+                // 🛡️ ADMIN MODERATION CONTROL PANEL (Visible to Admin Users)
+                if (isAdmin) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.shield_rounded, color: AppColors.primary, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'ADMIN MODERATION CONTROLS',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Verification Status:',
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+                                onPressed: _isProcessing ? null : () => _adminVerifyItem(item, VerificationStatus.verified),
+                                icon: const Icon(Icons.check_circle_rounded, size: 16),
+                                label: const Text('Verify Item', style: TextStyle(fontSize: 12)),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+                                onPressed: _isProcessing ? null : () => _adminVerifyItem(item, VerificationStatus.rejected),
+                                icon: const Icon(Icons.cancel_rounded, size: 16),
+                                label: const Text('Reject Claim', style: TextStyle(fontSize: 12)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Change Status:',
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            ChoiceChip(
+                              label: const Text('Active'),
+                              selected: item.status == ItemStatus.active,
+                              onSelected: (_) => _adminUpdateStatus(item, ItemStatus.active),
+                            ),
+                            ChoiceChip(
+                              label: const Text('Claimed'),
+                              selected: item.status == ItemStatus.claimed,
+                              onSelected: (_) => _adminUpdateStatus(item, ItemStatus.claimed),
+                            ),
+                            ChoiceChip(
+                              label: const Text('Returned'),
+                              selected: item.status == ItemStatus.returned,
+                              onSelected: (_) => _adminUpdateStatus(item, ItemStatus.returned),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Claim Item Button (For Regular Users or Unclaimed Active Items)
+                if (item.status == ItemStatus.active && !isAdmin) ...[
                   SizedBox(
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: _isClaiming ? null : () => _claimItem(item),
-                      child: _isClaiming
+                      onPressed: _isProcessing ? null : () => _claimItem(item),
+                      child: _isProcessing
                           ? const SizedBox(
                               width: 22,
                               height: 22,

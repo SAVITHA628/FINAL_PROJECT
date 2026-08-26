@@ -2,6 +2,13 @@ import '../mock/mock_data.dart';
 import '../models/user_model.dart';
 import 'auth_service_interface.dart';
 
+const ADMIN_EMAILS = [
+  'admin@foundit.com',
+  'admin@foundit.app',
+  'jashrishi@gmail.com',
+  'savitha609@gmail.com',
+];
+
 class MockAuthService implements AuthServiceInterface {
   UserModel? _currentUser; // Default unauthenticated until user logs in or registers
 
@@ -17,7 +24,12 @@ class MockAuthService implements AuthServiceInterface {
     if (password.length < 6) {
       throw Exception('Password must be at least 6 characters.');
     }
-    _currentUser = MockData.currentUser.copyWith(email: email);
+    final isAdminEmail = ADMIN_EMAILS.contains(email.toLowerCase());
+    _currentUser = MockData.currentUser.copyWith(
+      email: email,
+      name: email.split('@')[0],
+      role: isAdminEmail ? 'admin' : 'user',
+    );
     return _currentUser!;
   }
 
@@ -28,12 +40,13 @@ class MockAuthService implements AuthServiceInterface {
     if (email.contains('alreadyused')) {
       throw Exception('An account already exists for this email address.');
     }
+    final isAdminEmail = ADMIN_EMAILS.contains(email.toLowerCase());
     _currentUser = UserModel(
       uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
       name: name,
       email: email,
       phone: phone,
-      role: 'user',
+      role: isAdminEmail ? 'admin' : 'user',
       isActive: true,
       favouriteItemIds: [],
       createdAt: DateTime.now(),
