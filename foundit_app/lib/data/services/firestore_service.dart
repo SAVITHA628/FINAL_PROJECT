@@ -165,18 +165,20 @@ class FirestoreService implements ItemServiceInterface {
       }
     };
 
-    try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/items'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      );
-      if (res.statusCode == 200 || res.statusCode == 201) {
-        final data = jsonDecode(res.body);
-        return _docToItemModel(data);
-      }
-    } catch (_) {}
-    return item;
+    final res = await http.post(
+      Uri.parse('$baseUrl/items'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      final data = jsonDecode(res.body);
+      return _docToItemModel(data);
+    } else {
+      final err = jsonDecode(res.body);
+      final errMsg = err['error']?['message'] ?? 'Firestore HTTP error (${res.statusCode})';
+      throw Exception(errMsg);
+    }
   }
 
   @override

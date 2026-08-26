@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_routes.dart';
 import '../../../core/enums/item_status.dart';
 import '../../../core/enums/item_type.dart';
 import '../../../core/enums/verification_status.dart';
@@ -31,7 +32,6 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   String _category = 'Electronics';
   DateTime _dateLostOrFound = DateTime.now();
 
-
   String? _base64ImageUrl;
   bool _isLoading = false;
   String? _errorMessage;
@@ -56,19 +56,30 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
+    try {
+      final picker = ImagePicker();
+      // Compress & resize image to max 600px, 50% quality to keep payload under ~40KB
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 600,
+        maxHeight: 600,
+        imageQuality: 50,
+      );
 
-    if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes();
-      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
 
-      setState(() {
-        _base64ImageUrl = base64String;
-      });
+        setState(() {
+          _base64ImageUrl = base64String;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not select image: $e')),
+        );
+      }
     }
   }
 
@@ -113,11 +124,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
 
     try {
       final currentUser = await ref.read(currentUserProvider.future);
-      final userId = currentUser?.uid ?? 'guest_user';
-      final reporterName = currentUser?.name ?? 'Guest Reporter';
-      final reporterPhone = currentUser?.phone ?? '+919876543210';
-
-      String? finalImageUrl = _base64ImageUrl;
+      final userId = currentUser?.uid ?? 'user_${DateTime.now().millisecondsSinceEpoch}';
+      final reporterName = currentUser?.name.isNotEmpty == true ? currentUser!.name : 'Campus Reporter';
+      final reporterPhone = currentUser?.phone?.isNotEmpty == true ? currentUser!.phone! : '+919876543210';
 
       final newItem = ItemModel(
         id: 'item_${DateTime.now().millisecondsSinceEpoch}',
@@ -127,7 +136,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         category: _category,
         location: _locationCtrl.text.trim(),
         dateLostOrFound: _dateLostOrFound,
-        imageUrl: finalImageUrl,
+        imageUrl: _base64ImageUrl,
         status: ItemStatus.active,
         verificationStatus: VerificationStatus.pending,
         reportedBy: userId,
@@ -151,9 +160,15 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         ref.invalidate(activeItemsProvider);
         ref.invalidate(myReportedItemsProvider);
         ref.invalidate(aiMatchesProvider);
-        context.pop();
+
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(AppRoutes.home);
+        }
       }
     } catch (e) {
+      debugPrint('AddItem submit error: $e');
       if (mounted) {
         setState(() {
           _errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -181,6 +196,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
               children: [
                 if (_errorMessage != null) ...[
                   Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.error.withOpacity(0.12),
@@ -190,7 +206,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                       ),
                     ),
                     child: Text(_errorMessage!,
-                        style: const TextStyle(color: AppColors.error)),
+                        style: const TextStyle(color: AppColors.error, fontSize: 13)),
                   ),
                   const SizedBox(height: 16),
                 ],
