@@ -44,6 +44,14 @@ class FirestoreService implements ItemServiceInterface {
         : _parseString(fields['status']);
     final rawVerif = _parseString(fields['verificationStatus']);
 
+    final repPhone = _parseString(fields['reporterPhone']);
+    final cPhone = _parseString(fields['contactPhone']).isNotEmpty
+        ? _parseString(fields['contactPhone'])
+        : repPhone;
+    final cWa = _parseString(fields['contactWhatsApp']).isNotEmpty
+        ? _parseString(fields['contactWhatsApp'])
+        : cPhone;
+
     return ItemModel(
       id: id,
       type: ItemType.fromString(rawType.toLowerCase()),
@@ -61,7 +69,9 @@ class FirestoreService implements ItemServiceInterface {
           ? _parseString(fields['userId'])
           : _parseString(fields['reportedBy']),
       reporterName: _parseString(fields['reporterName']),
-      reporterPhone: _parseString(fields['reporterPhone']),
+      reporterPhone: repPhone,
+      contactPhone: cPhone,
+      contactWhatsApp: cWa,
       claimedBy: _parseString(fields['claimedBy']).isEmpty
           ? null
           : _parseString(fields['claimedBy']),
@@ -75,6 +85,34 @@ class FirestoreService implements ItemServiceInterface {
       createdAt: _parseDate(fields['createdAt']) ?? DateTime.now(),
       updatedAt: _parseDate(fields['updatedAt']),
     );
+  }
+
+  // ── Notification Creation Helper ────────────────────────────────────
+  Future<void> createNotification({
+    required String recipientId,
+    required String title,
+    required String body,
+    required String type,
+    String? itemId,
+  }) async {
+    try {
+      final payload = {
+        'fields': {
+          'recipientId': {'stringValue': recipientId},
+          'title': {'stringValue': title},
+          'body': {'stringValue': body},
+          'type': {'stringValue': type},
+          'itemId': {'stringValue': itemId ?? ''},
+          'isRead': {'booleanValue': false},
+          'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
+        }
+      };
+      await http.post(
+        Uri.parse('$baseUrl/notifications'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+    } catch (_) {}
   }
 
   // ── Item Service Interface Implementation ────────────────────────────
@@ -159,6 +197,8 @@ class FirestoreService implements ItemServiceInterface {
         'reportedBy': {'stringValue': item.reportedBy},
         'reporterName': {'stringValue': item.reporterName},
         'reporterPhone': {'stringValue': item.reporterPhone},
+        'contactPhone': {'stringValue': item.contactPhone ?? item.reporterPhone},
+        'contactWhatsApp': {'stringValue': item.contactWhatsApp ?? item.contactPhone ?? item.reporterPhone},
         'imageUrl': {'stringValue': item.imageUrl ?? ''},
         'isActive': {'booleanValue': true},
         'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
@@ -173,7 +213,18 @@ class FirestoreService implements ItemServiceInterface {
 
     if (res.statusCode == 200 || res.statusCode == 201) {
       final data = jsonDecode(res.body);
-      return _docToItemModel(data);
+      final created = _docToItemModel(data);
+
+      // Create confirmation notification in Firestore
+      await createNotification(
+        recipientId: item.reportedBy,
+        title: 'Item Report Created',
+        body: 'Your ${item.type.name.toUpperCase()} item "${item.title}" was published to FoundIt.',
+        type: 'ITEM_REPORTED',
+        itemId: created.id,
+      );
+
+      return created;
     } else {
       final err = jsonDecode(res.body);
       final errMsg = err['error']?['message'] ?? 'Firestore HTTP error (${res.statusCode})';
@@ -196,6 +247,8 @@ class FirestoreService implements ItemServiceInterface {
         'reportedBy': {'stringValue': item.reportedBy},
         'reporterName': {'stringValue': item.reporterName},
         'reporterPhone': {'stringValue': item.reporterPhone},
+        'contactPhone': {'stringValue': item.contactPhone ?? item.reporterPhone},
+        'contactWhatsApp': {'stringValue': item.contactWhatsApp ?? item.contactPhone ?? item.reporterPhone},
         'imageUrl': {'stringValue': item.imageUrl ?? ''},
         'isActive': {'booleanValue': item.isActive},
         'updatedAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
@@ -207,6 +260,15 @@ class FirestoreService implements ItemServiceInterface {
         Uri.parse('$baseUrl/items/${item.id}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
+      );
+
+      // Notify reporter of verification/status update
+      await createNotification(
+        recipientId: item.reportedBy,
+        title: 'Item Verification Status Updated',
+        body: 'Your item "${item.title}" status is now ${item.status.name.toUpperCase()} / ${item.verificationStatus.name.toUpperCase()}.',
+        type: 'STATUS_CHANGED',
+        itemId: item.id,
       );
     } catch (_) {}
     return item;
@@ -228,6 +290,15 @@ class FirestoreService implements ItemServiceInterface {
         claimedBy: claimantId,
         claimedAt: DateTime.now(),
       ));
+
+      // Notify reporter that someone claimed their item
+      await createNotification(
+        recipientId: item.reportedBy,
+        title: 'Item Ownership Claimed',
+        body: 'Someone has claimed your item "${item.title}". Review claims in FoundIt.',
+        type: 'ITEM_CLAIMED',
+        itemId: itemId,
+      );
     }
   }
 }

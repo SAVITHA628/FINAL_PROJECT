@@ -100,7 +100,7 @@ class AiMatchesScreen extends ConsumerWidget {
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isHighMatch ? AppColors.success.withOpacity(0.5) : AppColors.primary.withOpacity(0.4),
+                    color: isHighMatch ? AppColors.success.withValues(alpha: 0.5) : AppColors.primary.withValues(alpha: 0.4),
                     width: 1.5,
                   ),
                   boxShadow: AppColors.cardShadow,
@@ -113,8 +113,8 @@ class AiMatchesScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: isHighMatch
-                            ? AppColors.success.withOpacity(0.12)
-                            : AppColors.primary.withOpacity(0.12),
+                            ? AppColors.success.withValues(alpha: 0.12)
+                            : AppColors.primary.withValues(alpha: 0.12),
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                       ),
                       child: Row(
@@ -171,7 +171,7 @@ class AiMatchesScreen extends ConsumerWidget {
                                     decoration: BoxDecoration(
                                       color: AppColors.background,
                                       borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: AppColors.error.withOpacity(0.4)),
+                                      border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
                                     ),
                                     child: Column(
                                       children: [
@@ -217,7 +217,7 @@ class AiMatchesScreen extends ConsumerWidget {
                                     decoration: BoxDecoration(
                                       color: AppColors.background,
                                       borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: AppColors.success.withOpacity(0.4)),
+                                      border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
                                     ),
                                     child: Column(
                                       children: [

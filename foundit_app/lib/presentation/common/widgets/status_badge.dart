@@ -16,29 +16,29 @@ class StatusBadge extends StatelessWidget {
 
     switch (status) {
       case ItemStatus.active:
-        bg = AppColors.success.withOpacity(0.12);
-        border = AppColors.success.withOpacity(0.3);
+        bg = AppColors.success.withValues(alpha: 0.12);
+        border = AppColors.success.withValues(alpha: 0.3);
         textColor = AppColors.success;
         break;
       case ItemStatus.claimed:
-        bg = AppColors.warning.withOpacity(0.12);
-        border = AppColors.warning.withOpacity(0.3);
+        bg = AppColors.warning.withValues(alpha: 0.12);
+        border = AppColors.warning.withValues(alpha: 0.3);
         textColor = AppColors.warning;
         break;
       case ItemStatus.returned:
-        bg = AppColors.info.withOpacity(0.12);
-        border = AppColors.info.withOpacity(0.3);
+        bg = AppColors.info.withValues(alpha: 0.12);
+        border = AppColors.info.withValues(alpha: 0.3);
         textColor = AppColors.info;
         break;
       case ItemStatus.closed:
       case ItemStatus.expired:
-        bg = AppColors.textMuted.withOpacity(0.12);
-        border = AppColors.textMuted.withOpacity(0.3);
+        bg = AppColors.textMuted.withValues(alpha: 0.12);
+        border = AppColors.textMuted.withValues(alpha: 0.3);
         textColor = AppColors.textMuted;
         break;
       case ItemStatus.disputed:
-        bg = AppColors.error.withOpacity(0.12);
-        border = AppColors.error.withOpacity(0.3);
+        bg = AppColors.error.withValues(alpha: 0.12);
+        border = AppColors.error.withValues(alpha: 0.3);
         textColor = AppColors.error;
         break;
     }

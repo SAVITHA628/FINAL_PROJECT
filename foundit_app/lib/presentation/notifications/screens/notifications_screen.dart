@@ -87,7 +87,7 @@ class NotificationsScreen extends ConsumerWidget {
                     border: Border.all(
                       color: n.isRead
                           ? AppColors.border
-                          : color.withOpacity(0.4),
+                          : color.withValues(alpha: 0.4),
                     ),
                   ),
                   child: Row(
@@ -96,7 +96,7 @@ class NotificationsScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.15),
+                          color: color.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(icon, size: 20, color: color),

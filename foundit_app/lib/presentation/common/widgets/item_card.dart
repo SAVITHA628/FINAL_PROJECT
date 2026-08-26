@@ -26,6 +26,9 @@ class ItemCard extends ConsumerWidget {
     final favouriteIds = favouritesAsync.valueOrNull ?? [];
     final isFav = favouriteIds.contains(item.id);
 
+    final callNumber = (item.contactPhone?.isNotEmpty == true) ? item.contactPhone! : item.reporterPhone;
+    final whatsappNumber = (item.contactWhatsApp?.isNotEmpty == true) ? item.contactWhatsApp! : callNumber;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -145,16 +148,16 @@ class ItemCard extends ConsumerWidget {
                   VerificationBadge(status: item.verificationStatus),
                   const SizedBox(width: 8),
 
-                  // Call Button
-                  if (item.reporterPhone.isNotEmpty) ...[
+                  // Call Button (Uses Item Contact Phone)
+                  if (callNumber.isNotEmpty) ...[
                     InkWell(
                       borderRadius: BorderRadius.circular(20),
-                      onTap: () => LauncherUtils.callPhone(item.reporterPhone),
+                      onTap: () => LauncherUtils.callPhone(callNumber),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.15),
+                          color: AppColors.primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Row(
@@ -177,11 +180,11 @@ class ItemCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 6),
 
-                    // WhatsApp Button
+                    // WhatsApp Button (Uses Item WhatsApp Number)
                     InkWell(
                       borderRadius: BorderRadius.circular(20),
                       onTap: () => LauncherUtils.openWhatsApp(
-                        item.reporterPhone,
+                        whatsappNumber,
                         message:
                             'Hi ${item.reporterName}, regarding your item: ${item.title} on FoundIt',
                       ),
@@ -189,7 +192,7 @@ class ItemCard extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppColors.success.withOpacity(0.15),
+                          color: AppColors.success.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Row(

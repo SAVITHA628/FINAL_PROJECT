@@ -145,7 +145,7 @@ class HomeScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
@@ -163,7 +163,7 @@ class HomeScreen extends ConsumerWidget {
                               matchCount > 0
                                   ? '$matchCount possible item match${matchCount > 1 ? 'es' : ''} detected'
                                   : 'Tap to run AI scan across lost & found items',
-                              style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12),
                             ),
                           ],
                         ),
@@ -210,7 +210,7 @@ class HomeScreen extends ConsumerWidget {
                           Icon(
                             Icons.inventory_2_outlined,
                             size: 64,
-                            color: AppColors.textMuted.withOpacity(0.5),
+                            color: AppColors.textMuted.withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 16),
                           const Text(

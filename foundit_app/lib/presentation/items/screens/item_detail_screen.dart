@@ -292,7 +292,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'REPORTER CONTACT',
+                        'ITEM CONTACT',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -335,7 +335,9 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                                 ),
                               ),
                               Text(
-                                item.reporterPhone,
+                                item.contactPhone?.isNotEmpty == true
+                                    ? item.contactPhone!
+                                    : item.reporterPhone,
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.textSecondary,
@@ -350,7 +352,11 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
-                              onPressed: () => LauncherUtils.callPhone(item.reporterPhone),
+                              onPressed: () => LauncherUtils.callPhone(
+                                item.contactPhone?.isNotEmpty == true
+                                    ? item.contactPhone!
+                                    : item.reporterPhone,
+                              ),
                               icon: const Icon(Icons.call_rounded, size: 18),
                               label: const Text('Call'),
                             ),
@@ -362,7 +368,11 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                                 backgroundColor: AppColors.success,
                               ),
                               onPressed: () => LauncherUtils.openWhatsApp(
-                                item.reporterPhone,
+                                item.contactWhatsApp?.isNotEmpty == true
+                                    ? item.contactWhatsApp!
+                                    : (item.contactPhone?.isNotEmpty == true
+                                        ? item.contactPhone!
+                                        : item.reporterPhone),
                                 message: 'Hi ${item.reporterName}, regarding item: ${item.title} on FoundIt.',
                               ),
                               icon: const Icon(Icons.chat_bubble_rounded, size: 18),
@@ -382,9 +392,9 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.08),
+                      color: AppColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

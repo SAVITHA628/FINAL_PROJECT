@@ -83,6 +83,10 @@ class ProfileScreen extends ConsumerWidget {
             );
           }
 
+          final regPhone = (user.registrationPhone?.isNotEmpty == true)
+              ? user.registrationPhone!
+              : (user.phone?.isNotEmpty == true ? user.phone! : '');
+
           return CustomScrollView(
             slivers: [
               // Profile Header Card
@@ -126,7 +130,7 @@ class ProfileScreen extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: user.role == 'admin'
-                                  ? AppColors.primary.withOpacity(0.15)
+                                  ? AppColors.primary.withValues(alpha: 0.15)
                                   : AppColors.surfaceLight,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
@@ -156,10 +160,10 @@ class ProfileScreen extends ConsumerWidget {
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      if (user.phone != null) ...[
+                      if (regPhone.isNotEmpty) ...[
                         AppSpacing.gapXs,
                         Text(
-                          user.phone!,
+                          regPhone,
                           style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.textMuted,

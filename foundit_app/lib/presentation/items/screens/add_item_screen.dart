@@ -28,6 +28,8 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
+  final _contactPhoneCtrl = TextEditingController();
+  final _whatsappCtrl = TextEditingController();
 
   ItemType _itemType = ItemType.lost;
   String _category = 'Electronics';
@@ -53,6 +55,8 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     _titleCtrl.dispose();
     _descCtrl.dispose();
     _locationCtrl.dispose();
+    _contactPhoneCtrl.dispose();
+    _whatsappCtrl.dispose();
     super.dispose();
   }
 
@@ -131,7 +135,14 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       final currentUser = await ref.read(currentUserProvider.future);
       final userId = currentUser?.uid ?? 'user_${DateTime.now().millisecondsSinceEpoch}';
       final reporterName = currentUser?.name.isNotEmpty == true ? currentUser!.name : 'Campus Reporter';
-      final reporterPhone = currentUser?.phone?.isNotEmpty == true ? currentUser!.phone! : '+919876543210';
+      final regPhone = currentUser?.registrationPhone ?? currentUser?.phone ?? '+919876543210';
+
+      final contactPhone = _contactPhoneCtrl.text.trim().isNotEmpty
+          ? _contactPhoneCtrl.text.trim()
+          : regPhone;
+      final contactWhatsApp = _whatsappCtrl.text.trim().isNotEmpty
+          ? _whatsappCtrl.text.trim()
+          : contactPhone;
 
       final newItem = ItemModel(
         id: 'item_${DateTime.now().millisecondsSinceEpoch}',
@@ -146,7 +157,9 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         verificationStatus: VerificationStatus.pending,
         reportedBy: userId,
         reporterName: reporterName,
-        reporterPhone: reporterPhone,
+        reporterPhone: contactPhone,
+        contactPhone: contactPhone,
+        contactWhatsApp: contactWhatsApp,
         createdAt: DateTime.now(),
       );
 
@@ -213,10 +226,10 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.12),
+                      color: AppColors.error.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.error.withOpacity(0.3),
+                        color: AppColors.error.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(_errorMessage!,
@@ -244,7 +257,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
                             color: _itemType == ItemType.lost
-                                ? AppColors.error.withOpacity(0.15)
+                                ? AppColors.error.withValues(alpha: 0.15)
                                 : AppColors.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
@@ -286,7 +299,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
                             color: _itemType == ItemType.found
-                                ? AppColors.success.withOpacity(0.15)
+                                ? AppColors.success.withValues(alpha: 0.15)
                                 : AppColors.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
@@ -371,7 +384,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                                     onPressed: _removeImage,
                                     icon: const Icon(Icons.delete_rounded, size: 18),
                                     style: IconButton.styleFrom(
-                                      backgroundColor: AppColors.error.withOpacity(0.2),
+                                      backgroundColor: AppColors.error.withValues(alpha: 0.2),
                                       foregroundColor: AppColors.error,
                                     ),
                                   ),
@@ -469,6 +482,28 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                     hintText: 'e.g. Library Cafeteria, Block B',
                   ),
                   validator: Validators.required,
+                ),
+                const SizedBox(height: 16),
+
+                // Item Contact Phone for Call
+                TextFormField(
+                  controller: _contactPhoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Contact Phone for Call (Optional)',
+                    hintText: 'e.g. +922222222222',
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Item WhatsApp Phone for WhatsApp
+                TextFormField(
+                  controller: _whatsappCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'WhatsApp Number (Optional)',
+                    hintText: 'e.g. +933333333333',
+                  ),
                 ),
                 const SizedBox(height: 16),
 

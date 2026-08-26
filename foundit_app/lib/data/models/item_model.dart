@@ -1,4 +1,3 @@
-
 import '../../core/enums/item_status.dart';
 import '../../core/enums/item_type.dart';
 import '../../core/enums/verification_status.dart';
@@ -17,6 +16,8 @@ class ItemModel {
   final String reportedBy;
   final String reporterName;
   final String reporterPhone;
+  final String? contactPhone;
+  final String? contactWhatsApp;
   final String? claimedBy;
   final DateTime? claimedAt;
   final DateTime? returnedAt;
@@ -40,6 +41,8 @@ class ItemModel {
     required this.reportedBy,
     required this.reporterName,
     required this.reporterPhone,
+    this.contactPhone,
+    this.contactWhatsApp,
     this.claimedBy,
     this.claimedAt,
     this.returnedAt,
@@ -51,6 +54,9 @@ class ItemModel {
   });
 
   Map<String, dynamic> toMap() {
+    final effectiveContactPhone = contactPhone ?? reporterPhone;
+    final effectiveWhatsApp = contactWhatsApp ?? effectiveContactPhone;
+
     return {
       'itemId': id,
       'userId': reportedBy,
@@ -68,6 +74,8 @@ class ItemModel {
       'reportedBy': reportedBy,
       'reporterName': reporterName,
       'reporterPhone': reporterPhone,
+      'contactPhone': effectiveContactPhone,
+      'contactWhatsApp': effectiveWhatsApp,
       'claimedBy': claimedBy,
       'claimedAt': claimedAt?.toIso8601String(),
       'returnedAt': returnedAt?.toIso8601String(),
@@ -90,6 +98,9 @@ class ItemModel {
     final rawStatus = (map['itemStatus'] ?? map['status'] ?? 'active').toString();
     final rawVerif = (map['verificationStatus'] ?? 'pending').toString();
     final rawUserId = (map['userId'] ?? map['reportedBy'] ?? '').toString();
+    final rawReporterPhone = (map['reporterPhone'] ?? map['contactPhone'] ?? '').toString();
+    final rawContactPhone = (map['contactPhone'] ?? rawReporterPhone).toString();
+    final rawWhatsApp = (map['contactWhatsApp'] ?? rawContactPhone).toString();
 
     return ItemModel(
       id: docId,
@@ -104,7 +115,9 @@ class ItemModel {
       verificationStatus: VerificationStatus.fromString(rawVerif.toLowerCase()),
       reportedBy: rawUserId,
       reporterName: map['reporterName'] ?? '',
-      reporterPhone: map['reporterPhone'] ?? '',
+      reporterPhone: rawReporterPhone,
+      contactPhone: rawContactPhone,
+      contactWhatsApp: rawWhatsApp,
       claimedBy: map['claimedBy'],
       claimedAt: parseDate(map['claimedAt']),
       returnedAt: parseDate(map['returnedAt']),
@@ -129,6 +142,8 @@ class ItemModel {
     String? adminNotes,
     String? claimedBy,
     DateTime? claimedAt,
+    String? contactPhone,
+    String? contactWhatsApp,
   }) {
     return ItemModel(
       id: id,
@@ -144,6 +159,8 @@ class ItemModel {
       reportedBy: reportedBy,
       reporterName: reporterName,
       reporterPhone: reporterPhone,
+      contactPhone: contactPhone ?? this.contactPhone,
+      contactWhatsApp: contactWhatsApp ?? this.contactWhatsApp,
       claimedBy: claimedBy ?? this.claimedBy,
       claimedAt: claimedAt ?? this.claimedAt,
       returnedAt: returnedAt,
