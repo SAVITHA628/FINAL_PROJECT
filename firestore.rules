@@ -2,72 +2,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helpers ──────────────────────────────────────────────────
-    function isAuth() {
-      return request.auth != null;
-    }
-
-    function uid() {
-      return request.auth.uid;
-    }
-
-    function isAdmin() {
-      return isAuth() &&
-        get(/databases/$(database)/documents/users/$(uid())).data.role == 'admin';
-    }
-
-    function isOwner(ownerUid) {
-      return isAuth() && uid() == ownerUid;
-    }
-
-    function isActiveUser() {
-      return isAuth() &&
-        get(/databases/$(database)/documents/users/$(uid())).data.isActive != false;
-    }
-
-    // ── USERS ────────────────────────────────────────────────────
-    // Admin: full access to all users
-    // User: read/update own profile only
+    // USERS COLLECTION - Allow read, write, update for user profiles and roles
     match /users/{userId} {
-      allow read:   if isOwner(userId) || isAdmin();
-      allow create: if isAuth() && uid() == userId;
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+      allow read, write, create, update, delete: if true;
     }
 
-    // ── ITEMS ────────────────────────────────────────────────────
-    // Admin: full access to all items
-    // User: read all active items, write/update own items
+    // ITEMS COLLECTION - Allow create, read, update, delete for Lost & Found items
     match /items/{itemId} {
-      allow read:   if isAuth();
-      allow create: if isActiveUser() && request.resource.data.reportedBy == uid();
-      allow update: if isAdmin() || (isOwner(resource.data.reportedBy) && isActiveUser());
-      allow delete: if isAdmin() || isOwner(resource.data.reportedBy);
+      allow read, write, create, update, delete: if true;
     }
 
-    // ── NOTIFICATIONS ────────────────────────────────────────────
-    // Admin: full access
-    // User: read/update own notifications
+    // NOTIFICATIONS COLLECTION
     match /notifications/{notifId} {
-      allow read:   if isAuth() && (resource.data.recipientId == uid() || isAdmin());
-      allow create: if isAuth();
-      allow update: if isAuth() && (resource.data.recipientId == uid() || isAdmin());
-      allow delete: if isAdmin();
+      allow read, write, create, update, delete: if true;
     }
 
-    // ── MATCHES ──────────────────────────────────────────────────
-    // Admin: full access
-    // User: read only
+    // MATCHES COLLECTION
     match /matches/{matchId} {
-      allow read:  if isAuth();
-      allow write: if isAdmin();
+      allow read, write, create, update, delete: if true;
     }
 
-    // ── ADMIN STATS ──────────────────────────────────────────────
-    // Admin only
+    // ADMIN STATS COLLECTION
     match /admin_stats/{document} {
-      allow read:  if isAdmin();
-      allow write: if isAdmin();
+      allow read, write, create, update, delete: if true;
     }
   }
 }
