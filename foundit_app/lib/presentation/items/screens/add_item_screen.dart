@@ -51,6 +51,23 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final user = await ref.read(currentUserProvider.future);
+      if (user != null && mounted) {
+        final phone = user.registrationPhone ?? user.phone ?? '';
+        if (phone.isNotEmpty) {
+          setState(() {
+            _contactPhoneCtrl.text = phone;
+            _whatsappCtrl.text = phone;
+          });
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _titleCtrl.dispose();
     _descCtrl.dispose();
@@ -135,7 +152,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       final currentUser = await ref.read(currentUserProvider.future);
       final userId = currentUser?.uid ?? 'user_${DateTime.now().millisecondsSinceEpoch}';
       final reporterName = currentUser?.name.isNotEmpty == true ? currentUser!.name : 'Campus Reporter';
-      final regPhone = currentUser?.registrationPhone ?? currentUser?.phone ?? '+919876543210';
+      final regPhone = currentUser?.registrationPhone ?? currentUser?.phone ?? '+911111111111';
 
       final contactPhone = _contactPhoneCtrl.text.trim().isNotEmpty
           ? _contactPhoneCtrl.text.trim()
@@ -485,14 +502,15 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Item Contact Phone for Call
+                // Item Contact Phone (Auto pre-filled from registration phone)
                 TextFormField(
                   controller: _contactPhoneCtrl,
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
-                    labelText: 'Contact Phone for Call (Optional)',
-                    hintText: 'e.g. +922222222222',
+                    labelText: 'Contact Phone for Call',
+                    hintText: 'e.g. +91 9876543210 (Defaults to Registered Phone)',
                   ),
+                  validator: Validators.required,
                 ),
                 const SizedBox(height: 16),
 
@@ -501,9 +519,10 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
                   controller: _whatsappCtrl,
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
-                    labelText: 'WhatsApp Number (Optional)',
-                    hintText: 'e.g. +933333333333',
+                    labelText: 'WhatsApp Number for Chat',
+                    hintText: 'e.g. +91 9876543210 (Defaults to Contact Phone)',
                   ),
+                  validator: Validators.required,
                 ),
                 const SizedBox(height: 16),
 

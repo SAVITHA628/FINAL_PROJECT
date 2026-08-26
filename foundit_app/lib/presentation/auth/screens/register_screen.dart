@@ -50,7 +50,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             name: _nameCtrl.text.trim(),
             email: _emailCtrl.text.trim(),
             password: _passCtrl.text,
-            phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+            phone: _phoneCtrl.text.trim(),
           );
 
       if (mounted) {
@@ -155,7 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Email with generic hint text
+                // Email
                 AuthTextField(
                   controller: _emailCtrl,
                   label: 'Email Address',
@@ -166,14 +166,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Phone (optional)
+                // Phone Number (Required)
                 AuthTextField(
                   controller: _phoneCtrl,
-                  label: 'Phone Number',
+                  label: 'Phone Number (Required)',
                   hint: '+91 9876543210',
                   prefixIcon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
-                  validator: Validators.phone,
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) {
+                      return 'Phone number is required for registration & item contact';
+                    }
+                    return Validators.phone(val);
+                  },
                 ),
                 const SizedBox(height: 16),
 

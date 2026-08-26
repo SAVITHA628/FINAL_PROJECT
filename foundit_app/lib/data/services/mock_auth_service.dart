@@ -73,9 +73,33 @@ class MockAuthService implements AuthServiceInterface {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );
+
+      // Save a welcome notification into Firestore for this user
+      await _createWelcomeNotification(user.uid, user.name);
     } catch (e) {
       debugPrint('Firestore save user profile error: $e');
     }
+  }
+
+  Future<void> _createWelcomeNotification(String userId, String name) async {
+    try {
+      final payload = {
+        'fields': {
+          'recipientId': {'stringValue': userId},
+          'title': {'stringValue': 'Welcome to FoundIt! 👋'},
+          'body': {'stringValue': 'Hi $name, your campus Lost & Found account is active. Report lost items and receive real-time match alerts.'},
+          'type': {'stringValue': 'WELCOME'},
+          'itemId': {'stringValue': ''},
+          'isRead': {'booleanValue': false},
+          'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
+        }
+      };
+      await http.post(
+        Uri.parse('$baseUrl/notifications'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+    } catch (_) {}
   }
 
   // ── Fetch User Profile from Firestore collection `users` ──────────────
