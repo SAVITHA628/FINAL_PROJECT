@@ -9,6 +9,7 @@ import '../../../core/enums/verification_status.dart';
 import '../../../core/utils/launcher_utils.dart';
 import '../../../data/models/item_model.dart';
 import '../../../providers/app_providers.dart';
+import '../../common/shell/main_shell.dart';
 import '../../common/widgets/app_image.dart';
 import '../../common/widgets/status_badge.dart';
 import '../../common/widgets/type_badge.dart';
@@ -30,8 +31,12 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
     final user = await ref.read(currentUserProvider.future);
     if (user == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please sign in to claim an item.')),
+        AppNotificationPopup.show(
+          context,
+          title: 'Sign In Required',
+          message: 'Please sign in to submit an item claim.',
+          icon: Icons.lock_outline_rounded,
+          color: AppColors.warning,
         );
       }
       return;
@@ -42,18 +47,23 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       final repo = ref.read(itemRepositoryProvider);
       await repo.markAsClaimed(item.id, user.uid);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Claim request submitted successfully!'),
-            backgroundColor: AppColors.success,
-          ),
+        AppNotificationPopup.show(
+          context,
+          title: '🎉 Claim Request Submitted',
+          message: 'Your ownership claim for "${item.title}" was submitted to campus admin.',
+          icon: Icons.check_circle_rounded,
+          color: AppColors.success,
         );
         ref.invalidate(activeItemsProvider);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error claiming item: $e')),
+        AppNotificationPopup.show(
+          context,
+          title: 'Claim Error',
+          message: '$e',
+          icon: Icons.error_outline_rounded,
+          color: AppColors.error,
         );
       }
     } finally {
@@ -71,18 +81,23 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       );
       await repo.updateItem(updated);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Item verification updated to ${newVerif.name.toUpperCase()}'),
-            backgroundColor: AppColors.success,
-          ),
+        AppNotificationPopup.show(
+          context,
+          title: '🛡️ Moderation Updated',
+          message: 'Verification status set to ${newVerif.name.toUpperCase()} for "${item.title}".',
+          icon: Icons.verified_user_rounded,
+          color: AppColors.primary,
         );
         ref.invalidate(activeItemsProvider);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Admin error: $e')),
+        AppNotificationPopup.show(
+          context,
+          title: 'Admin Error',
+          message: '$e',
+          icon: Icons.error_outline_rounded,
+          color: AppColors.error,
         );
       }
     } finally {
@@ -97,18 +112,23 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       final updated = item.copyWith(status: newStatus);
       await repo.updateItem(updated);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Item status changed to ${newStatus.name.toUpperCase()}'),
-            backgroundColor: AppColors.primary,
-          ),
+        AppNotificationPopup.show(
+          context,
+          title: '🔄 Item Status Changed',
+          message: 'Status updated to ${newStatus.name.toUpperCase()} for "${item.title}".',
+          icon: Icons.published_with_changes_rounded,
+          color: AppColors.primary,
         );
         ref.invalidate(activeItemsProvider);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Admin error: $e')),
+        AppNotificationPopup.show(
+          context,
+          title: 'Admin Error',
+          message: '$e',
+          icon: Icons.error_outline_rounded,
+          color: AppColors.error,
         );
       }
     } finally {
@@ -369,8 +389,8 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: const [
+                        const Row(
+                          children: [
                             Icon(Icons.shield_rounded, color: AppColors.primary, size: 20),
                             SizedBox(width: 8),
                             Text(

@@ -13,6 +13,7 @@ import '../../../core/enums/verification_status.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/models/item_model.dart';
 import '../../../providers/app_providers.dart';
+import '../../common/shell/main_shell.dart';
 import '../../common/widgets/app_image.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
@@ -76,8 +77,12 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not select image: $e')),
+        AppNotificationPopup.show(
+          context,
+          title: 'Image Selection Failed',
+          message: '$e',
+          icon: Icons.error_outline_rounded,
+          color: AppColors.error,
         );
       }
     }
@@ -149,14 +154,14 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
       await repo.addItem(newItem);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Item reported successfully as ${_itemType.displayName}!',
-            ),
-            backgroundColor: AppColors.success,
-          ),
+        AppNotificationPopup.show(
+          context,
+          title: '🎉 Item Submitted',
+          message: 'Your ${_itemType.displayName} report "${newItem.title}" is now live!',
+          icon: Icons.check_circle_rounded,
+          color: AppColors.success,
         );
+
         ref.invalidate(activeItemsProvider);
         ref.invalidate(myReportedItemsProvider);
         ref.invalidate(aiMatchesProvider);
@@ -170,9 +175,18 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     } catch (e) {
       debugPrint('AddItem submit error: $e');
       if (mounted) {
+        final errText = e.toString().replaceFirst('Exception: ', '');
         setState(() {
-          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+          _errorMessage = errText;
         });
+
+        AppNotificationPopup.show(
+          context,
+          title: '⚠️ Submission Error',
+          message: errText,
+          icon: Icons.warning_amber_rounded,
+          color: AppColors.error,
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
