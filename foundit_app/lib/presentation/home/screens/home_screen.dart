@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
@@ -12,12 +13,20 @@ import '../../common/widgets/item_card.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  Future<void> _openAdminDashboard() async {
+    final uri = Uri.parse('http://localhost:5173');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeItemsAsync = ref.watch(activeItemsProvider);
     final selectedFilter = ref.watch(itemTypeFilterProvider);
     final currentUserAsync = ref.watch(currentUserProvider);
     final currentUser = currentUserAsync.valueOrNull ?? MockData.currentUser;
+    final isAdmin = currentUser.role == 'admin';
     final aiMatchesAsync = ref.watch(aiMatchesProvider);
     final matchCount = aiMatchesAsync.valueOrNull?.length ?? 0;
 
@@ -52,13 +61,36 @@ class HomeScreen extends ConsumerWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Hello, ${currentUser.name} 👋',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Hello, ${currentUser.name}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: isAdmin ? AppColors.primary.withOpacity(0.2) : AppColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isAdmin ? AppColors.primary : AppColors.border,
+                        ),
+                      ),
+                      child: Text(
+                        isAdmin ? '🛡️ ADMIN' : '👤 USER',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: isAdmin ? AppColors.primary : AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const Text(
                   'Campus Lost & Found',
@@ -126,6 +158,52 @@ class HomeScreen extends ConsumerWidget {
         },
         child: CustomScrollView(
           slivers: [
+            // 🛡️ Admin Quick Access Banner (Visible for Admin users)
+            if (isAdmin)
+              SliverToBoxAdapter(
+                child: GestureDetector(
+                  onTap: _openAdminDashboard,
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.shield_rounded, color: AppColors.primary, size: 22),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '🛡️ Admin Privilege Active',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              Text(
+                                'Tap to open Web Admin Portal (localhost:5173)',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.open_in_new_rounded, color: AppColors.primary, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
             // AI Matching Banner Widget
             SliverToBoxAdapter(
               child: GestureDetector(

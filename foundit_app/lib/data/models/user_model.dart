@@ -1,4 +1,3 @@
-
 class UserModel {
   final String uid;
   final String name;
@@ -65,6 +64,7 @@ class UserModel {
     String? email,
     String? phone,
     String? profileImageUrl,
+    String? role,
     List<String>? favouriteItemIds,
     bool? isActive,
   }) {
@@ -74,7 +74,7 @@ class UserModel {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      role: role,
+      role: role ?? this.role,
       isActive: isActive ?? this.isActive,
       favouriteItemIds: favouriteItemIds ?? this.favouriteItemIds,
       createdAt: createdAt,
