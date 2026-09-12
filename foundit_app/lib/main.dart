@@ -43,22 +43,36 @@ void main() async {
 final routerProvider = Provider<GoRouter>((ref) {
   final routerNotifier = ref.watch(routerNotifierProvider);
 
+  // All routes that are accessible WITHOUT login
+  const publicRoutes = {
+    AppRoutes.splash,
+    AppRoutes.login,
+    AppRoutes.register,
+    AppRoutes.forgotPassword,
+  };
+
   return GoRouter(
     initialLocation: AppRoutes.splash,
     refreshListenable: routerNotifier,
     redirect: (context, state) {
       final loc = state.matchedLocation;
       final isSplash = loc == AppRoutes.splash;
-      final isAuthRoute = loc == AppRoutes.login ||
-          loc == AppRoutes.register ||
-          loc == AppRoutes.forgotPassword;
+
+      // Check if this route requires authentication
+      final isPublicRoute = publicRoutes.contains(loc);
 
       final currentUser = ref.read(currentUserProvider).valueOrNull;
       final isLoggedIn = currentUser != null;
 
+      // Splash — let SplashScreen handle navigation itself
       if (isSplash) return null;
-      if (!isLoggedIn && !isAuthRoute) return AppRoutes.login;
-      if (isLoggedIn && isAuthRoute) return AppRoutes.home;
+
+      // 🔒 If user is NOT logged in and tries to access any protected route → redirect to login
+      if (!isLoggedIn && !isPublicRoute) return AppRoutes.login;
+
+      // ✅ If user IS logged in and tries to access auth routes → redirect to home
+      if (isLoggedIn && isPublicRoute && !isSplash) return AppRoutes.home;
+
       return null;
     },
     routes: [
@@ -75,6 +89,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: AppRoutes.profile, builder: (c, s) => const ProfileScreen()),
         ],
       ),
+      // 🔒 These routes are also protected — router redirect handles them
       GoRoute(path: AppRoutes.search, builder: (c, s) => const SearchScreen()),
       GoRoute(path: AppRoutes.notifications, builder: (c, s) => const NotificationsScreen()),
       GoRoute(path: AppRoutes.aiMatches, builder: (c, s) => const AiMatchesScreen()),

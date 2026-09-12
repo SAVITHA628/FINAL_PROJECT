@@ -142,23 +142,17 @@ class MockAuthService implements AuthServiceInterface {
     final existingUser = await _fetchUserFromFirestoreByEmail(email);
 
     if (existingUser != null) {
+      // ✅ Found registered user — authenticate
       _currentUser = existingUser.copyWith(
         role: isAdminEmail ? 'admin' : existingUser.role,
       );
     } else {
-      final docId = 'user_${email.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}';
-      _currentUser = UserModel(
-        uid: docId,
-        name: email.split('@')[0],
-        email: email,
-        phone: '+911111111111',
-        registrationPhone: '+911111111111',
-        role: isAdminEmail ? 'admin' : 'user',
-        isActive: true,
-        favouriteItemIds: [],
-        createdAt: DateTime.now(),
+      // ✅ SECURITY FIX: Do NOT auto-create accounts on login.
+      // Unregistered emails must explicitly register first.
+      throw Exception(
+        'No account found for "$email".\n'
+        'Please register a new account first, or check your email address.',
       );
-      await _saveUserToFirestore(_currentUser!);
     }
 
     return _currentUser!;
