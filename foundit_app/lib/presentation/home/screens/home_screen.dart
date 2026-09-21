@@ -74,7 +74,7 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.auto_awesome_rounded, color: AppColors.secondary, size: 22),
-            tooltip: 'AI Matches',
+            tooltip: 'Matches',
             onPressed: () => context.push(AppRoutes.aiMatches),
           ),
           IconButton(
@@ -162,7 +162,7 @@ class HomeScreen extends ConsumerWidget {
                             Text(
                               matchCount > 0
                                   ? '$matchCount possible item match${matchCount > 1 ? 'es' : ''} detected'
-                                  : 'Tap to run match scan across lost & found items',
+                                  : 'Tap to scan across lost & found items',
                               style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12),
                             ),
                           ],

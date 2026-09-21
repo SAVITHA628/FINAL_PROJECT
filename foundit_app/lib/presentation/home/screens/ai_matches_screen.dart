@@ -19,9 +19,9 @@ class AiMatchesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Row(
           children: [
-            Icon(Icons.search_rounded, color: AppColors.secondary, size: 20),
+            Icon(Icons.auto_awesome_rounded, color: AppColors.secondary, size: 20),
             SizedBox(width: 8),
-            Text('Possible Item Matches'),
+            Text('Possible Matches'),
           ],
         ),
         actions: [
