@@ -19,15 +19,15 @@ class AiMatchesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Row(
           children: [
-            Icon(Icons.auto_awesome_rounded, color: AppColors.secondary, size: 20),
+            Icon(Icons.search_rounded, color: AppColors.secondary, size: 20),
             SizedBox(width: 8),
-            Text('AI Possible Matches'),
+            Text('Possible Item Matches'),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Rescan AI Matches',
+            tooltip: 'Rescan Matches',
             onPressed: () => ref.invalidate(aiMatchesProvider),
           ),
         ],
@@ -72,7 +72,7 @@ class AiMatchesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'The AI/ML service continuously scans active items in real time.',
+                      'The matching service continuously scans active items in real time.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                     ),

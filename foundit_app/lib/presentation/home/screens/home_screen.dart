@@ -162,7 +162,7 @@ class HomeScreen extends ConsumerWidget {
                             Text(
                               matchCount > 0
                                   ? '$matchCount possible item match${matchCount > 1 ? 'es' : ''} detected'
-                                  : 'Tap to run AI scan across lost & found items',
+                                  : 'Tap to run match scan across lost & found items',
                               style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12),
                             ),
                           ],
