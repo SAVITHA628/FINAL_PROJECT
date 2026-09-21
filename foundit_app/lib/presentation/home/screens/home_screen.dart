@@ -156,7 +156,7 @@ class HomeScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'AI Multimodal Image Matching',
+                              'Image Matching',
                               style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
                             ),
                             Text(

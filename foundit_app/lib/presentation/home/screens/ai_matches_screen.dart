@@ -40,7 +40,7 @@ class AiMatchesScreen extends ConsumerWidget {
               CircularProgressIndicator(color: AppColors.primary),
               SizedBox(height: 16),
               Text(
-                'Running Python AI/ML Multimodal Feature Fusion...',
+                'Running image & item feature similarity scan...',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
             ],
