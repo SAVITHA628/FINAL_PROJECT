@@ -13,10 +13,8 @@ const ADMIN_EMAILS = [
   'savitha609@gmail.com',
 ];
 
-// Simple consistent hash so password is never stored in plaintext
-// We XOR each char code with a seed and base64-encode for storage
 String _hashPassword(String password) {
-  const seed = 0x4F; // 'O' for "obfuscate"
+  const seed = 0x4F;
   final bytes = password.codeUnits.map((c) => c ^ seed).toList();
   return base64Encode(bytes);
 }
@@ -28,7 +26,7 @@ class MockAuthService implements AuthServiceInterface {
 
   UserModel? _currentUser;
 
-  // ── Firestore field parser ──────────────────────────────────────────────
+  // ── Helper to parse Firestore REST field format for User document ────
   String _parseString(Map<String, dynamic>? field) {
     if (field == null) return '';
     return field['stringValue'] ?? field['integerValue']?.toString() ?? '';
@@ -47,6 +45,13 @@ class MockAuthService implements AuthServiceInterface {
     final role =
         _parseString(fields['role']).isEmpty ? 'user' : _parseString(fields['role']);
 
+    // Parse persisted favorite item IDs array from Firestore document
+    final favArray = fields['favouriteItemIds']?['arrayValue']?['values'] as List<dynamic>? ?? [];
+    final favIds = favArray
+        .map((v) => (v as Map<String, dynamic>)['stringValue'] as String? ?? '')
+        .where((fId) => fId.isNotEmpty)
+        .toList();
+
     return UserModel(
       uid: id,
       name: name,
@@ -55,28 +60,35 @@ class MockAuthService implements AuthServiceInterface {
       registrationPhone: regPhone,
       role: role,
       isActive: true,
-      favouriteItemIds: [],
+      favouriteItemIds: favIds,
       createdAt: DateTime.now(),
     );
   }
 
-  // ── Save user profile + password hash to Firestore `users/{userId}` ────
-  Future<void> _saveUserToFirestore(UserModel user, String hashedPassword) async {
+  // ── Save User Profile + Favorites + Password Hash to Firestore ────────
+  Future<void> _saveUserToFirestore(UserModel user, [String? hashedPassword]) async {
     try {
-      final payload = {
-        'fields': {
-          'uid': {'stringValue': user.uid},
-          'name': {'stringValue': user.name},
-          'email': {'stringValue': user.email},
-          'phone': {'stringValue': user.registrationPhone ?? user.phone ?? ''},
-          'registrationPhone': {'stringValue': user.registrationPhone ?? user.phone ?? ''},
-          'role': {'stringValue': user.role},
-          'isActive': {'booleanValue': user.isActive},
-          // Store hashed password so only the registered password can login
-          'passwordHash': {'stringValue': hashedPassword},
-          'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
-        }
+      final favValues = user.favouriteItemIds
+          .map((id) => {'stringValue': id})
+          .toList();
+
+      final Map<String, dynamic> fieldsMap = {
+        'uid': {'stringValue': user.uid},
+        'name': {'stringValue': user.name},
+        'email': {'stringValue': user.email},
+        'phone': {'stringValue': user.registrationPhone ?? user.phone ?? ''},
+        'registrationPhone': {'stringValue': user.registrationPhone ?? user.phone ?? ''},
+        'role': {'stringValue': user.role},
+        'isActive': {'booleanValue': user.isActive},
+        'favouriteItemIds': {'arrayValue': {'values': favValues}},
+        'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
       };
+
+      if (hashedPassword != null && hashedPassword.isNotEmpty) {
+        fieldsMap['passwordHash'] = {'stringValue': hashedPassword};
+      }
+
+      final payload = {'fields': fieldsMap};
 
       await http.patch(
         Uri.parse('$baseUrl/users/${user.uid}'),
@@ -115,7 +127,7 @@ class MockAuthService implements AuthServiceInterface {
     } catch (_) {}
   }
 
-  // ── Fetch user doc + stored passwordHash from Firestore by email ────────
+  // ── Fetch user doc from Firestore by email ────────────────────────────
   Future<Map<String, dynamic>?> _fetchUserDocByEmail(String email) async {
     try {
       final res = await http
@@ -139,17 +151,14 @@ class MockAuthService implements AuthServiceInterface {
     return null;
   }
 
-  // ── Check if email is already registered ───────────────────────────────
   Future<bool> _emailAlreadyRegistered(String email) async {
     final doc = await _fetchUserDocByEmail(email);
     return doc != null;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
   @override
   Future<UserModel?> getCurrentUser() async => _currentUser;
 
-  // ── LOGIN — verifies BOTH email (must exist) AND password (must match) ──
   @override
   Future<UserModel> login(String email, String password) async {
     await Future.delayed(const Duration(milliseconds: 200));
@@ -161,7 +170,6 @@ class MockAuthService implements AuthServiceInterface {
       throw Exception('Password must be at least 6 characters.');
     }
 
-    // 1️⃣  Look up the Firestore user document
     final doc = await _fetchUserDocByEmail(email);
 
     if (doc == null) {
@@ -171,20 +179,17 @@ class MockAuthService implements AuthServiceInterface {
       );
     }
 
-    // 2️⃣  Verify password — compare hash stored at registration
     final fields = (doc['fields'] as Map<String, dynamic>?) ?? {};
     final storedHash = _parseString(fields['passwordHash']);
     final incomingHash = _hashPassword(password);
 
     if (storedHash.isNotEmpty && storedHash != incomingHash) {
-      // Wrong password — do NOT give a hint about which field is wrong
       throw Exception(
         'Incorrect password. Please try again.\n'
         'If you forgot your password, use "Forgot Password?" below.',
       );
     }
 
-    // 3️⃣  Build the UserModel from the Firestore document
     final isAdminEmail = ADMIN_EMAILS.contains(email.toLowerCase());
     _currentUser = _docToUserModel(doc).copyWith(
       role: isAdminEmail ? 'admin' : _docToUserModel(doc).role,
@@ -193,13 +198,11 @@ class MockAuthService implements AuthServiceInterface {
     return _currentUser!;
   }
 
-  // ── REGISTER — saves email, phone, role AND hashed password ────────────
   @override
   Future<UserModel> register(
       String name, String email, String password, String? phone) async {
     await Future.delayed(const Duration(milliseconds: 200));
 
-    // Prevent duplicate email registration
     final alreadyExists = await _emailAlreadyRegistered(email);
     if (alreadyExists) {
       throw Exception(
@@ -225,7 +228,6 @@ class MockAuthService implements AuthServiceInterface {
       createdAt: DateTime.now(),
     );
 
-    // Save profile AND password hash to Firestore `users/{userId}`
     await _saveUserToFirestore(_currentUser!, hashedPassword);
 
     return _currentUser!;
@@ -234,7 +236,10 @@ class MockAuthService implements AuthServiceInterface {
   @override
   Future<void> sendPasswordReset(String email) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    // In a real app this would send an email; here we just silently succeed.
+    final doc = await _fetchUserDocByEmail(email);
+    if (doc == null) {
+      throw Exception('No registered account found with email address "$email".');
+    }
   }
 
   @override
@@ -253,5 +258,8 @@ class MockAuthService implements AuthServiceInterface {
       favs.add(itemId);
     }
     _currentUser = _currentUser!.copyWith(favouriteItemIds: favs);
+
+    // Save updated favorites array to Cloud Firestore `users/{userId}`
+    await _saveUserToFirestore(_currentUser!);
   }
 }
