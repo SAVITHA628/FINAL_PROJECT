@@ -26,7 +26,6 @@ class MockAuthService implements AuthServiceInterface {
 
   UserModel? _currentUser;
 
-  // ── Helper to parse Firestore REST field format for User document ────
   String _parseString(Map<String, dynamic>? field) {
     if (field == null) return '';
     return field['stringValue'] ?? field['integerValue']?.toString() ?? '';
@@ -45,7 +44,6 @@ class MockAuthService implements AuthServiceInterface {
     final role =
         _parseString(fields['role']).isEmpty ? 'user' : _parseString(fields['role']);
 
-    // Parse persisted favorite item IDs array from Firestore document
     final favArray = fields['favouriteItemIds']?['arrayValue']?['values'] as List<dynamic>? ?? [];
     final favIds = favArray
         .map((v) => (v as Map<String, dynamic>)['stringValue'] as String? ?? '')
@@ -65,7 +63,6 @@ class MockAuthService implements AuthServiceInterface {
     );
   }
 
-  // ── Save User Profile + Favorites + Password Hash to Firestore ────────
   Future<void> _saveUserToFirestore(UserModel user, [String? hashedPassword]) async {
     try {
       final favValues = user.favouriteItemIds
@@ -127,7 +124,6 @@ class MockAuthService implements AuthServiceInterface {
     } catch (_) {}
   }
 
-  // ── Fetch user doc from Firestore by email ────────────────────────────
   Future<Map<String, dynamic>?> _fetchUserDocByEmail(String email) async {
     try {
       final res = await http
@@ -243,6 +239,33 @@ class MockAuthService implements AuthServiceInterface {
   }
 
   @override
+  Future<void> resetPassword(String email, String newPassword) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final doc = await _fetchUserDocByEmail(email);
+    if (doc == null) {
+      throw Exception('No registered account found with email address "$email".');
+    }
+
+    final namePath = doc['name'] as String? ?? '';
+    final docId = namePath.split('/').last;
+
+    final hashedPassword = _hashPassword(newPassword);
+
+    final payload = {
+      'fields': {
+        'passwordHash': {'stringValue': hashedPassword},
+      }
+    };
+
+    // Update passwordHash field in Cloud Firestore user document
+    await http.patch(
+      Uri.parse('$baseUrl/users/$docId?updateMask.fieldPaths=passwordHash'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+  }
+
+  @override
   Future<void> logout() async {
     await Future.delayed(const Duration(milliseconds: 100));
     _currentUser = null;
@@ -259,7 +282,6 @@ class MockAuthService implements AuthServiceInterface {
     }
     _currentUser = _currentUser!.copyWith(favouriteItemIds: favs);
 
-    // Save updated favorites array to Cloud Firestore `users/{userId}`
     await _saveUserToFirestore(_currentUser!);
   }
 }

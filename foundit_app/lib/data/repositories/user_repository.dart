@@ -20,6 +20,9 @@ class UserRepository {
   Future<void> sendPasswordReset(String email) =>
       _service.sendPasswordReset(email);
 
+  Future<void> resetPassword(String email, String newPassword) =>
+      _service.resetPassword(email, newPassword);
+
   Future<void> logout() => _service.logout();
 
   Future<void> toggleFavourite(String userId, String itemId) =>

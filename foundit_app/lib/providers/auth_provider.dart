@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/user_model.dart';
 import 'app_providers.dart';
 
-// Router notifier for GoRouter refreshListenable
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
@@ -18,7 +17,6 @@ final routerNotifierProvider = Provider<RouterNotifier>((ref) {
   return RouterNotifier(ref);
 });
 
-// Auth notifier state management
 final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, AsyncValue<UserModel?>>((ref) {
   return AuthNotifier(ref);
@@ -75,6 +73,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> sendPasswordReset(String email) async {
     try {
       await _ref.read(userRepositoryProvider).sendPasswordReset(email);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> resetPassword(String email, String newPassword) async {
+    try {
+      await _ref.read(userRepositoryProvider).resetPassword(email, newPassword);
     } catch (e) {
       rethrow;
     }

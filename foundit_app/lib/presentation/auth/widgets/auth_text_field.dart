@@ -6,6 +6,7 @@ class AuthTextField extends StatefulWidget {
   final String label;
   final String? hint;
   final bool obscureText;
+  final bool enabled;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
   final IconData? prefixIcon;
@@ -16,6 +17,7 @@ class AuthTextField extends StatefulWidget {
     required this.label,
     this.hint,
     this.obscureText = false,
+    this.enabled = true,
     this.keyboardType,
     this.validator,
     this.prefixIcon,
@@ -44,6 +46,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
         const SizedBox(height: 6),
         TextFormField(
           controller: widget.controller,
+          enabled: widget.enabled,
           obscureText: widget.obscureText && !_isPasswordVisible,
           keyboardType: widget.keyboardType,
           validator: widget.validator,
@@ -63,7 +66,9 @@ class _AuthTextFieldState extends State<AuthTextField> {
                       size: 20,
                     ),
                     onPressed: () {
-                      setState(() => _isPasswordVisible = !_isPasswordVisible);
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
                     },
                   )
                 : null,

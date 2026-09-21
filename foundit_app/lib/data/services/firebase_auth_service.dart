@@ -24,6 +24,9 @@ class FirebaseAuthService implements AuthServiceInterface {
   Future<void> sendPasswordReset(String email) async {}
 
   @override
+  Future<void> resetPassword(String email, String newPassword) async {}
+
+  @override
   Future<void> logout() async {}
 
   @override
